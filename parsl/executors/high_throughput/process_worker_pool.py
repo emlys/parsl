@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-import time
-
-_SCRIPT_LOAD_TIME = time.time()  # runs before imports
-
 import argparse
 import importlib
 import logging
@@ -17,6 +13,7 @@ import queue
 import subprocess
 import sys
 import threading
+import time
 import uuid
 from importlib.metadata import distributions
 from multiprocessing.context import SpawnProcess
@@ -165,9 +162,7 @@ class Manager:
 
         logger.info("Manager initializing")
 
-        # record the time the script loaded, as opposed to the time this line runs, so
-        # that draining and manager selection better match what the scheduler sees
-        self.start_time = _SCRIPT_LOAD_TIME
+        self._start_time = time.time()
 
         self.log_config = log_config
 
@@ -191,6 +186,7 @@ class Manager:
 
         self.uid = uid
         self.block_id = block_id
+        self.start_time = time.time()
 
         self.enable_mpi_mode = enable_mpi_mode
         self.mpi_launcher = mpi_launcher
@@ -243,7 +239,7 @@ class Manager:
 
         self.drain_time: float
         if drain_period:
-            self.drain_time = self.start_time + drain_period
+            self.drain_time = self._start_time + drain_period
             logger.info(f"Will request drain at {self.drain_time}")
         else:
             self.drain_time = float('inf')
@@ -351,9 +347,7 @@ class Manager:
                 pending_task_count = f"pending task count is not available on {platform.system()}"  # type: ignore[assignment]
 
             logger.debug(
-                'ready workers: %d, pending tasks: %d',
-                self.ready_worker_count.value,
-                pending_task_count,
+                f'ready workers: {self.ready_worker_count.value}, pending tasks: {pending_task_count}'
             )
 
             if time.time() >= last_beat + self.heartbeat_period:
@@ -572,7 +566,7 @@ class Manager:
                 p.join()
             p.close()
 
-        delta = time.time() - self.start_time
+        delta = time.time() - self._start_time
         logger.info("process_worker_pool ran for {} seconds".format(delta))
 
     def _start_worker(self, worker_id: int) -> SpawnProcess:

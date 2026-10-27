@@ -1,12 +1,11 @@
 import logging
+import os
 
 import pytest
+import typeguard
 
-# Typeguard does some odd trickery that is apparently confusing to mypy
-from typeguard import TypeCheckError  # type: ignore[attr-defined]
-
+import parsl.app.errors as perror
 from parsl.app.app import bash_app
-from parsl.app.errors import BadStdStreamFile
 
 
 @bash_app
@@ -14,39 +13,62 @@ def echo_to_streams(msg, stderr=None, stdout=None):
     return 'echo "{0}"; echo "{0}" >&2'.format(msg)
 
 
+whitelist = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', '*threads*')
+
 speclist = (
-    (TypeCheckError, ['t3.out', 'w']),
-    (TypeCheckError, ('t4.out', None)),
-    (TypeCheckError, (42, 'w')),
-    (TypeCheckError, ('t6.out', 'w', 42)),
-    (TypeCheckError, ('t7.out',)),
-    (BadStdStreamFile, ('t8.out', 'badmode')),
+    ['t3.out', 'w'],
+    ('t4.out', None),
+    (42, 'w'),
+    ('t6.out', 'w', 42),
+    ('t7.out',),
+    ('t8.out', 'badmode')
 )
 
-testids = (
+testids = [
     'list_not_tuple',
     'null_mode',
     'not_a_string',
     '3tuple',
     '1tuple',
-    'bad_mode',
-)
+    'bad_mode'
+]
 
 
-@pytest.mark.parametrize('err_type,spec', speclist, ids=testids)
-def test_bad_stdout_specs(err_type, spec):
+@pytest.mark.parametrize('spec', speclist, ids=testids)
+def test_bad_stdout_specs(spec):
     """Testing bad stdout spec cases"""
-    with pytest.raises(err_type):
-        echo_to_streams("Hello world", stdout=spec, stderr='t.err').result()
+
+    fn = echo_to_streams("Hello world", stdout=spec, stderr='t.err')
+
+    try:
+        fn.result()
+    except Exception as e:
+        # This tests for TypeCheckError by string matching on the type name
+        # because that class does not exist in typeguard 2.x - it is new in
+        # typeguard 4.x. When typeguard 2.x support is dropped, this test can
+        # become an isinstance check.
+        assert "TypeCheckError" in str(type(e)) or isinstance(e, TypeError) or isinstance(e, perror.BadStdStreamFile), "Exception is wrong type"
+    else:
+        assert False, "Did not raise expected exception"
 
 
 @pytest.mark.issue3328
 @pytest.mark.unix_filesystem_permissions_required
 def test_bad_stdout_file():
     """Testing bad stderr file"""
+
     o = "/bad/dir/t2.out"
-    with pytest.raises(BadStdStreamFile):
-        echo_to_streams("Hello world", stdout=o, stderr='t.err').result()
+
+    fn = echo_to_streams("Hello world", stdout=o, stderr='t.err')
+
+    try:
+        fn.result()
+    except perror.BadStdStreamFile:
+        pass
+    else:
+        assert False, "Did not raise expected exception BadStdStreamFile"
+
+    return
 
 
 @pytest.mark.issue3328
@@ -55,8 +77,17 @@ def test_bad_stderr_file():
     """Testing bad stderr file"""
 
     err = "/bad/dir/t2.err"
-    with pytest.raises(BadStdStreamFile):
-        echo_to_streams("Hello world", stderr=err).result()
+
+    fn = echo_to_streams("Hello world", stderr=err)
+
+    try:
+        fn.result()
+    except perror.BadStdStreamFile:
+        pass
+    else:
+        assert False, "Did not raise expected exception BadStdStreamFile"
+
+    return
 
 
 @pytest.mark.executor_supports_std_stream_tuples

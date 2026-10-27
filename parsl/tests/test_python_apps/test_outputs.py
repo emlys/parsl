@@ -1,3 +1,4 @@
+import os
 from concurrent.futures import wait
 
 import pytest
@@ -10,6 +11,9 @@ def double(x, outputs=[]):
     with open(outputs[0], 'w') as f:
         f.write(x * 5)
     return x * 5
+
+
+whitelist = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', '*threads*')
 
 
 @pytest.mark.shared_fs
