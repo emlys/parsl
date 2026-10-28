@@ -1,6 +1,10 @@
 import logging
 import os
+import platform
+import textwrap
 import time
+
+import psutil
 
 from parsl.jobs.states import JobState, JobStatus
 from parsl.launchers import SingleNodeLauncher
@@ -68,7 +72,6 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
             - List of status codes.
 
         '''
-
         for job_id in self.resources:
             # This job dict should really be a class on its own
             job_dict = self.resources[job_id]
@@ -116,13 +119,7 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
 
     @staticmethod
     def _is_alive(job_dict) -> bool:
-        try:
-            os.kill(job_dict['remote_pid'], 0)
-        except ProcessLookupError:
-            return False
-        except PermissionError:
-            pass  # exists; just no permissions to send signal
-        return True
+        return psutil.pid_exists(job_dict['remote_pid'])
 
     def _job_file_path(self, script_path: str, suffix: str) -> str:
         path = '{0}{1}'.format(script_path, suffix)
@@ -190,18 +187,18 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
              - job_id: (string) Identifier for the job
 
         '''
-
         job_name = "{0}.{1}".format(job_name, time.time())
 
-        # Set script path
-        script_path = "{0}/{1}.sh".format(self.script_dir, job_name)
+        if platform.system() == 'Windows':
+            script_path = "{0}/{1}.ps1".format(self.script_dir, job_name)
+            jobname_cmd = f'\n$env:JOBNAME = "{job_name}"\n'
+        else:
+            script_path = "{0}/{1}.sh".format(self.script_dir, job_name)
+            jobname_cmd = f'\nexport JOBNAME={job_name}\n'
         script_path = os.path.abspath(script_path)
-
-        wrap_command = (self.worker_init + f'\nexport JOBNAME={job_name}\n' +
+        wrap_command = (self.worker_init + jobname_cmd +
                         self.launcher(command, tasks_per_node, self.nodes_per_block, self.script_dir))
-
         self._write_submit_script(wrap_command, script_path)
-
         job_id = None
         remote_pid = None
 
@@ -221,8 +218,26 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         # We need to do the >/dev/null 2>&1 so that bash closes stdout, otherwise
         # execute_wait hangs reading the process stdout until all the
         # background commands complete.
-        cmd = '/bin/bash -c \'echo - >{0}.ec && {{ {{ bash {0} 1>{0}.out 2>{0}.err ; ' \
-              'echo $? > {0}.ec ; }} >/dev/null 2>&1 & echo "PID:$!" ; }}\''.format(script_path)
+        if platform.system() == 'Windows':
+            cmd = (
+                f'powershell.exe -ExecutionPolicy Bypass -Command "'
+                f"Set-Content -Path '{script_path}.ec' -Value '-'; "
+                f"$p = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-ExecutionPolicy', 'Bypass', '-Command', "
+                f"'$proc = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList ''-ExecutionPolicy'', ''Bypass'', ''-File'', ''{script_path}'' "
+                f"-RedirectStandardOutput ''{script_path}.out'' -RedirectStandardError ''{script_path}.err'' -PassThru -Wait; "
+                f"Set-Content -Path ''{script_path}.ec'' -Value $proc.ExitCode' -PassThru; "
+                f"Write-Host ('PID:' + $p.Id)"
+                f'"'
+            )
+        else:
+            cmd = textwrap.dedent(
+                f'''
+                /bin/bash -c 'echo - >{script_path}.ec &&
+                {{ {{
+                    bash {script_path} 1>{script_path}.out 2>{script_path}.err ;
+                    echo $? > {script_path}.ec ;
+                }} >/dev/null 2>&1 & echo "PID:$!" ; }}'
+                ''')
         retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
         if retcode != 0:
             raise SubmitException(job_name, "Launch command exited with code {0}".format(retcode),

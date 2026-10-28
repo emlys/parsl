@@ -7,6 +7,7 @@ import subprocess
 import threading
 import time
 from contextlib import contextmanager
+import platform
 from types import TracebackType
 from typing import (
     IO,
@@ -496,12 +497,16 @@ def execute_wait(cmd: str, walltime: Optional[int] = None) -> Tuple[int, str, st
     '''
     try:
         logger.debug("Creating process with command '%s'", cmd)
+        if platform.system() == "Windows":
+            kwargs = dict(creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        else:
+            kwargs = dict(preexec_fn=os.setpgrp)
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=True,
-            preexec_fn=os.setpgrp
+            **kwargs
         )
         logger.debug("Created process with pid %s. Performing communicate", proc.pid)
         (stdout, stderr) = proc.communicate(timeout=walltime)

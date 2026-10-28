@@ -4,16 +4,21 @@
 import logging
 import multiprocessing
 import multiprocessing.queues
-from multiprocessing.context import ForkProcess as ForkProcessType
 from multiprocessing.context import SpawnProcess as SpawnProcessType
+import platform
 from typing import Callable
 
 logger = logging.getLogger(__name__)
 
-ForkContext = multiprocessing.get_context("fork")
-SpawnContext = multiprocessing.get_context("spawn")
+if platform.system() != 'Windows':
+    from multiprocessing.context import ForkProcess as ForkProcessType
+    ForkContext = multiprocessing.get_context("fork")
+    ForkProcess: Callable[..., ForkProcessType] = ForkContext.Process
+else:
+    ForkContext = None
+    ForkProcess = None
 
-ForkProcess: Callable[..., ForkProcessType] = ForkContext.Process
+SpawnContext = multiprocessing.get_context("spawn")
 SpawnProcess: Callable[..., SpawnProcessType] = SpawnContext.Process
 
 SpawnEvent = SpawnContext.Event

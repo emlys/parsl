@@ -2,13 +2,16 @@ import logging
 import math
 import os
 import pickle
+import platform
 import subprocess
+import sys
 import threading
 import typing
 import warnings
 from collections import defaultdict
 from concurrent.futures import Future
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import typeguard
@@ -43,7 +46,13 @@ from parsl.utils import RepresentationMixin
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_LAUNCH_CMD = ("process_worker_pool.py {debug} {max_workers_per_node} "
+if platform.system() == 'Windows':
+    process_worker_pool_script = Path(
+        __file__).parent / 'process_worker_pool.py'
+else:
+    process_worker_pool_script = 'process_worker_pool.py'
+DEFAULT_LAUNCH_CMD = (f"{process_worker_pool_script} "
+                      "{debug} {max_workers_per_node} "
                       "-a {addresses} "
                       "-p {prefetch_capacity} "
                       "-c {cores_per_worker} "
