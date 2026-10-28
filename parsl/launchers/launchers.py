@@ -74,7 +74,7 @@ class SingleNodeLauncher(Launcher):
         debug_num = int(self.debug)
 
         if platform.system() == 'Windows':
-            x = textwrap.dedent(f'''
+            return textwrap.dedent(f'''
             $ErrorActionPreference = "Stop"
 
             $env:CORES = [Environment]::ProcessorCount
@@ -112,7 +112,7 @@ class SingleNodeLauncher(Launcher):
             }}
             ''')
         else:
-            x = textwrap.dedent(f'''
+            return textwrap.dedent(f'''
             set -e
             export CORES=$(getconf _NPROCESSORS_ONLN)
             [[ "{debug_num}" == "1" ]] && echo "Found cores : $CORES"
@@ -147,7 +147,6 @@ class SingleNodeLauncher(Launcher):
                 exit $ALLFAILED
             fi
             ''')
-        return x
 
 
 class GnuParallelLauncher(Launcher):

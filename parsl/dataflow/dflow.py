@@ -123,6 +123,7 @@ class DataFlowKernel:
         logger.info("Starting DataFlowKernel with config\n%r", config)
 
         logger.info("Parsl version: %s", get_version())
+
         self.usage_tracker = UsageTracker(self)
         self.usage_tracker.send_start_message()
 
@@ -335,6 +336,7 @@ class DataFlowKernel:
              future (Future) : The future object corresponding to the task which
              makes this callback
         """
+
         task_id = task_record['id']
 
         task_record['try_time_returned'] = datetime.datetime.now()
@@ -601,7 +603,7 @@ class DataFlowKernel:
         launch_if_ready is thread safe, so may be called from any thread
         or callback.
         """
-        return self._task_launch_pool.submit(self._launch_if_ready_async, task_record)
+        self._task_launch_pool.submit(self._launch_if_ready_async, task_record)
 
     @wrap_with_logs
     def _launch_if_ready_async(self, task_record: TaskRecord) -> None:
@@ -1136,6 +1138,7 @@ class DataFlowKernel:
         AppFuture to be completed. This method will not necessarily wait for any tasks
         added after cleanup has started (such as data stageout?)
         """
+
         logger.info("Waiting for all remaining tasks to complete")
 
         # .values is made into a list immediately to reduce (although not
@@ -1147,7 +1150,7 @@ class DataFlowKernel:
             # waiting for completion than .result()
             fut = task_record['app_fu']
             if not fut.done():
-                ex = fut.exception()
+                fut.exception()
             # now app future is done, poll until DFK state is final: a
             # DFK state being final and the app future being done do not imply each other.
             while task_record['status'] not in FINAL_STATES:
