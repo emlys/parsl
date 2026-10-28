@@ -731,8 +731,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
         if resource_specification:
             context["resource_spec"] = resource_specification
 
-        fu = self.submit_payload(context, fn_buf)
-        return fu
+        return self.submit_payload(context, fn_buf)
 
     def submit_payload(self, context: dict, buffer: bytes) -> HTEXFuture:
         """
