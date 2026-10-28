@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 if platform.system() == 'Windows':
     process_worker_pool_script = Path(
-        sys.executable).parent / 'Scripts' / 'process_worker_pool.py'
+        __file__).parent / 'process_worker_pool.py'
 else:
     process_worker_pool_script = 'process_worker_pool.py'
 DEFAULT_LAUNCH_CMD = (f"{process_worker_pool_script} "
