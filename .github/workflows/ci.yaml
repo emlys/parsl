@@ -7,7 +7,7 @@ on:
       - synchronize
   merge_group:
 
-defauts:
+defaults:
   run:
     shell: bash
 
