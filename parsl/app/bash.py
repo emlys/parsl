@@ -83,11 +83,10 @@ def remote_side_bash_executor(func, *args, **kwargs):
     try:
         if platform.system() == 'Windows':
             print('executing', executable)
-            # to use this on Windows, user needs to set
-            # COMSPEC to point to their bash executable
+            # to use this on Windows, bash must be available on the path
             proc = subprocess.Popen(
-                executable, stdout=std_out, stderr=std_err,
-                shell=False, close_fds=False)
+                ['bash', '-c', executable], stdout=std_out, stderr=std_err,
+                close_fds=False)
         else:
             proc = subprocess.Popen(
                 executable, stdout=std_out, stderr=std_err,
