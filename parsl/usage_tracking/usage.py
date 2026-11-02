@@ -17,8 +17,6 @@ from parsl.version import VERSION as PARSL_VERSION
 
 logger = logging.getLogger(__name__)
 
-from typing import Callable
-
 from typing_extensions import ParamSpec
 
 # protocol version byte: when (for example) compression parameters are changed
