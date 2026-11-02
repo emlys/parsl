@@ -30,7 +30,7 @@ deps: $(DEPS) ## install the dependencies
 
 .PHONY: lint
 lint: ## run linter script
-	parsl/tests/lint-inits.sh
+	$(SHELL) parsl/tests/lint-inits.sh
 
 .PHONY: isort
 isort: ## run isort on all files
