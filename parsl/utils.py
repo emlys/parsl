@@ -1,13 +1,13 @@
 import inspect
 import logging
 import os
+import platform
 import re
 import shlex
 import subprocess
 import threading
 import time
 from contextlib import contextmanager
-import platform
 from types import TracebackType
 from typing import (
     IO,
