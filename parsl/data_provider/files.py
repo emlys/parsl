@@ -7,6 +7,7 @@ being called from.
 """
 import logging
 import os
+import pathlib
 from typing import Optional, Union
 from urllib.parse import urlparse
 
@@ -93,6 +94,6 @@ class File:
             return self.local_path
 
         if self.scheme in ['file']:
-            return self.path
+            return pathlib.Path(self.path).as_posix()
         else:
             raise ValueError("No local_path set for {}".format(repr(self)))
