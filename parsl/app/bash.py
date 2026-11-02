@@ -10,11 +10,6 @@ from parsl.dataflow.dflow import DataFlowKernelLoader
 
 logger = logging.getLogger(__name__)
 
-if platform.system() == 'Windows':
-    BASH_EXECUTABLE = 'bash'
-else:
-    BASH_EXECUTABLE = '/bin/bash'
-
 
 def remote_side_bash_executor(func, *args, **kwargs):
     """Executes the supplied function with *args and **kwargs to get a
@@ -86,7 +81,16 @@ def remote_side_bash_executor(func, *args, **kwargs):
 
     returncode = None
     try:
-        proc = subprocess.Popen(executable, stdout=std_out, stderr=std_err, shell=True, executable=BASH_EXECUTABLE, close_fds=False)
+        if platform.system() == 'Windows':
+            # to use this on Windows, user needs to set
+            # COMSPEC to point to their bash executable
+            proc = subprocess.Popen(
+                executable, stdout=std_out, stderr=std_err,
+                shell=False, close_fds=False)
+        else:
+            proc = subprocess.Popen(
+                executable, stdout=std_out, stderr=std_err,
+                shell=True, executable='/bin/bash', close_fds=False)
         proc.wait(timeout=timeout)
         returncode = proc.returncode
 
