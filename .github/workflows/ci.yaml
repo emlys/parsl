@@ -61,13 +61,13 @@ jobs:
 
     - name: make deps clean_coverage
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         make deps
         make clean_coverage
 
     - name: make test
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
 
         # temporary; until test-matrixification
         export PARSL_TEST_PRESERVE_NUM_RUNS=7
@@ -77,7 +77,7 @@ jobs:
 
     - name: Documentation checks
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         pip install .[docs]
         sudo apt-get install -y pandoc
         cd docs
@@ -101,14 +101,14 @@ jobs:
 
     - name: Checking parsl-visualize
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         sudo apt-get install -y graphviz
         pip install .[monitoring,visualization]
         parsl/tests/test-viz.sh
 
     - name: make coverage
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         make coverage
 
     - name: Archive runinfo logs
