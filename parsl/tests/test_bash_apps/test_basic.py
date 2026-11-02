@@ -14,6 +14,7 @@ from parsl.app.app import bash_app
 def echo_to_file(inputs=(), outputs=(), stderr=None, stdout=None):
     res = ""
     for o in outputs:
+        print(o, type(o))
         for i in inputs:
             res += "echo {} >& {}".format(i, o)
     return res
