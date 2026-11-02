@@ -1,4 +1,5 @@
 import os
+import platform
 import signal
 import time
 
@@ -28,8 +29,13 @@ def test_no_kills():
     parsl.dfk().cleanup()
 
 
+SHUTDOWN_SIGNALS = [signal.SIGINT, signal.SIGTERM]
+if platform.system() != 'Windows':
+    SHUTDOWN_SIGNALS += [signal.SIGKILL, signal.SIGQUIT]
+
+
 @pytest.mark.local
-@pytest.mark.parametrize("sig", [signal.SIGINT, signal.SIGTERM, signal.SIGKILL, signal.SIGQUIT])
+@pytest.mark.parametrize("sig", SHUTDOWN_SIGNALS)
 @pytest.mark.parametrize("process_attr", ["dbm_proc"])
 def test_kill_monitoring_helper_process(sig, process_attr, try_assert):
     """This tests that we can kill a monitoring process and still have successful shutdown.
