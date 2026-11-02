@@ -41,6 +41,7 @@ jobs:
         echo "as-ascii=$as_ascii" >> $GITHUB_OUTPUT
 
     - name: Non-requirements based install
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         # libpython3.5: make workqueue binary installer happy
         # mpich: required by radical executor
