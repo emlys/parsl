@@ -17,6 +17,12 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: ubuntu-latest
+            venv_path: .venv/bin/activate
+          - os: windows-latest
+            venv_path: .venv/Scripts/activate
+
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
 
@@ -51,8 +57,7 @@ jobs:
     - name: setup virtual env
       run: |
         python3 -m venv .venv
-        ls -la
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
 
     - name: make deps clean_coverage
       run: |
