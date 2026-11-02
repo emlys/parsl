@@ -152,6 +152,7 @@ class DataManager:
             - app_fu (Future) - a future representing the main body of the task that should
                                 complete before stageout begins.
         """
+        from pudb import set_trace; set_trace()
         executor_obj = self.dfk.executors[executor]
         if hasattr(executor_obj, "storage_access") and executor_obj.storage_access is not None:
             storage_access = executor_obj.storage_access
