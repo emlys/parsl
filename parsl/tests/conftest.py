@@ -3,6 +3,7 @@ import itertools
 import logging
 import os
 import pathlib
+import platform
 import random
 import re
 import shutil
@@ -45,7 +46,8 @@ def dumpstacks(sig, frame):
 
 
 def pytest_sessionstart(session):
-    signal.signal(signal.SIGUSR1, dumpstacks)
+    if platform.system() != 'Windows':
+        signal.signal(signal.SIGUSR1, dumpstacks)
 
 
 @pytest.fixture(scope="session")
