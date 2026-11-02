@@ -44,7 +44,7 @@ class File:
         parsed_url = urlparse(self.url)
         print(parsed_url)
         print(parsed_url.scheme)
-        self.scheme = parsed_url.scheme if parsed_url.scheme else 'file'
+        self.scheme = parsed_url.scheme if len(parsed_url.scheme) > 1 else 'file'
         self.netloc = parsed_url.netloc
         self.path = parsed_url.path
         self.filename = os.path.basename(self.path)
