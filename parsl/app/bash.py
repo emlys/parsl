@@ -1,4 +1,5 @@
 import logging
+import platform
 from functools import partial
 from inspect import Parameter, signature
 
@@ -8,6 +9,11 @@ from parsl.data_provider.files import File
 from parsl.dataflow.dflow import DataFlowKernelLoader
 
 logger = logging.getLogger(__name__)
+
+if platform.system() == 'Windows':
+    BASH_EXECUTABLE = 'bash'
+else:
+    BASH_EXECUTABLE = '/bin/bash'
 
 
 def remote_side_bash_executor(func, *args, **kwargs):
@@ -80,7 +86,7 @@ def remote_side_bash_executor(func, *args, **kwargs):
 
     returncode = None
     try:
-        proc = subprocess.Popen(executable, stdout=std_out, stderr=std_err, shell=True, executable='/bin/bash', close_fds=False)
+        proc = subprocess.Popen(executable, stdout=std_out, stderr=std_err, shell=True, executable=BASH_EXECUTABLE, close_fds=False)
         proc.wait(timeout=timeout)
         returncode = proc.returncode
 
