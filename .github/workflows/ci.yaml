@@ -7,6 +7,10 @@ on:
       - synchronize
   merge_group:
 
+defauts:
+  run:
+    shell: bash
+
 jobs:
   main-test-suite:
     strategy:
