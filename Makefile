@@ -21,8 +21,8 @@ virtualenv: ## create an activate a virtual env
 
 
 $(DEPS): test-requirements.txt requirements.txt
-	pip3 install --upgrade pip
-	pip3 install -r test-requirements.txt -r requirements.txt
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install -r test-requirements.txt -r requirements.txt
 	touch $(DEPS)
 
 .PHONY: deps
