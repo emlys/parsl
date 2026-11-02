@@ -39,11 +39,8 @@ class File:
               - 'globus://go#ep1/~/data/input.txt'
               - 'globus://ddb59aef-6d04-11e5-ba46-22000b92c6ec/home/johndoe/data/input.txt'
         """
-        print('initializing file', url)
         self.url = str(url)
         parsed_url = urlparse(self.url)
-        print(parsed_url)
-        print(parsed_url.scheme)
         self.scheme = parsed_url.scheme if len(parsed_url.scheme) > 1 else 'file'
         self.netloc = parsed_url.netloc
         self.path = parsed_url.path

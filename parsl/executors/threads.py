@@ -61,6 +61,7 @@ class ThreadPoolExecutor(ParslExecutor, RepresentationMixin):
         here `Python docs: <https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor>`_
 
         """
+        print('submitting', func, args, kwargs)
         if resource_specification:
             logger.error("Ignoring the resource specification. "
                          "Parsl resource specification is not supported in ThreadPool Executor.")
