@@ -51,6 +51,7 @@ exit_codes = {
 @pytest.mark.parametrize("app", (div_0, bash_misuse, not_executable, command_not_found))
 def test_failing_bash_app(test_fn, app):
     err_code = exit_codes[app]
+    test_fn(app).result()
     with pytest.raises(pe.BashExitFailure) as pyt_e:
         test_fn(app).result()
     e: pe.BashExitFailure = pyt_e.value
