@@ -4,6 +4,7 @@ import os
 import pickle
 import platform
 import subprocess
+import sys
 import threading
 import typing
 import warnings
@@ -24,6 +25,7 @@ from parsl.executors.errors import (
     InvalidResourceSpecification,
     ScalingFailed,
 )
+from parsl.executors.high_throughput import interchange
 from parsl.executors.high_throughput import zmq_pipes
 from parsl.executors.high_throughput.errors import CommandClientTimeoutError
 from parsl.executors.high_throughput.manager_selector import (
@@ -71,7 +73,9 @@ DEFAULT_LAUNCH_CMD = (f"{process_worker_pool_script} "
                       "--mpi-launcher={mpi_launcher} "
                       "--available-accelerators {accelerators}")
 
-DEFAULT_INTERCHANGE_LAUNCH_CMD = ["interchange.py"]
+# for Windows compatibility, point to full path of python executable
+# and interchange script
+DEFAULT_INTERCHANGE_LAUNCH_CMD = [sys.executable, interchange.__file__]
 
 GENERAL_HTEX_PARAM_DOCS = """provider : :class:`~parsl.providers.base.ExecutionProvider`
        Provider to access computation resources. Can be one of :class:`~parsl.providers.aws.aws.EC2Provider`,
