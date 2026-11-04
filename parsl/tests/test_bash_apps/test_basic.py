@@ -55,7 +55,7 @@ def test_auto_log_filename_format(caplog):
     log_fpath = foo_future.stdout
     assert isinstance(log_fpath, str)
 
-    log_pattern = fr".*[/\\]task_\d+_foo_label_test_auto_log_filename_format"
+    log_pattern = r".*[/\\]task_\d+_foo_label_test_auto_log_filename_format"
     assert re.match(log_pattern, log_fpath), 'Output file "{0}" does not match pattern "{1}"'.format(
         log_fpath, log_pattern)
     assert os.path.exists(log_fpath), 'Output file does not exist "{0}"'.format(log_fpath)

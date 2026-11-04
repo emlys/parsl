@@ -1,4 +1,5 @@
 import os
+import platform
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, Union
 
@@ -29,7 +30,9 @@ def create_certificates(base_dir: Union[str, os.PathLike]):
 def _load_certificate(
     cert_dir: Union[str, os.PathLike], name: str
 ) -> Tuple[bytes, bytes]:
-    if os.stat(cert_dir).st_mode & 0o777 != 0o700:
+    # don't attempt to set or check directory permissions on Windows for now
+    # that would require using the pywin32 library and I'm not sure it's worth it
+    if platform.system() != 'Windows' and os.stat(cert_dir).st_mode & 0o777 != 0o700:
         raise OSError(f"The certificates directory must be private: {cert_dir}")
 
     # pyzmq creates secret key files with the '.key_secret' extension
