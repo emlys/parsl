@@ -29,7 +29,7 @@ def test_behavior(tmpd_cwd):
 
     app2_future = app2(
         inputs=[o],
-        outputs=[File(str(tmpd_cwd / "simple-out2.txt"))]
+        outputs=[File((tmpd_cwd / "simple-out2.txt").as_posix())]
     )
     app2_future.result()
 
