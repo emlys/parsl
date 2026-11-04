@@ -25,8 +25,7 @@ from parsl.executors.errors import (
     InvalidResourceSpecification,
     ScalingFailed,
 )
-from parsl.executors.high_throughput import interchange
-from parsl.executors.high_throughput import zmq_pipes
+from parsl.executors.high_throughput import interchange, zmq_pipes
 from parsl.executors.high_throughput.errors import CommandClientTimeoutError
 from parsl.executors.high_throughput.manager_selector import (
     ManagerSelector,
