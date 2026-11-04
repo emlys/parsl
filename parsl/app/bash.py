@@ -86,7 +86,7 @@ def remote_side_bash_executor(func, *args, **kwargs):
             bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
             proc = subprocess.Popen(
                 [bash, '-c', executable], stdout=std_out, stderr=std_err,
-                close_fds=False)
+                close_fds=True)
         else:
             proc = subprocess.Popen(
                 executable, stdout=std_out, stderr=std_err,
