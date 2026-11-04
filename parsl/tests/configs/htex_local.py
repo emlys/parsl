@@ -13,11 +13,11 @@ def fresh_config():
                 # worker_debug=True,
                 cores_per_worker=1,
                 encrypted=False,
-                # provider=LocalProvider(
-                #     init_blocks=1,
-                #     max_blocks=1,
-                #     launcher=SimpleLauncher(),
-                # ),
+                provider=LocalProvider(
+                    init_blocks=1,
+                    max_blocks=1,
+                    launcher=SimpleLauncher(),
+                ),
             )
         ],
         # strategy='none',
