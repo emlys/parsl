@@ -9,16 +9,16 @@ def fresh_config():
         executors=[
             HighThroughputExecutor(
                 label="htex_local",
-                # loopback_address="::1",
-                # worker_debug=True,
+                loopback_address="::1",
+                worker_debug=True,
                 cores_per_worker=1,
                 encrypted=False,
                 provider=LocalProvider(
-                #     init_blocks=1,
-                #     max_blocks=1,
+                    init_blocks=1,
+                    max_blocks=1,
                 #     launcher=SimpleLauncher(),
                 ),
             )
         ],
-        # strategy='none',
+        strategy='none',
     )
