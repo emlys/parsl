@@ -15,6 +15,7 @@ def fresh_config():
                 encrypted=False,
                 provider=LocalProvider(
                     init_blocks=1,
+                    max_workers_per_node=2,
                     max_blocks=1,
                     launcher=SimpleLauncher(),
                 ),
