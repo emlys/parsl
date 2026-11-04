@@ -66,6 +66,8 @@ jobs:
         make clean_coverage
 
     - name: make test
+      env:
+        PARSL_WINDOWS_BASH_EXE: 'C:\Program Files\Git\bin\bash.exe'
       run: |
         source ${{ matrix.venv_path }}
 

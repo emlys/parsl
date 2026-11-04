@@ -52,7 +52,6 @@ def remote_side_bash_executor(func, *args, **kwargs):
 
     def open_std_fd(fdname):
         # fdname is 'stdout' or 'stderr'
-        print('opening', fdname)
         stdfspec = kwargs.get(fdname)  # spec is str name or tuple (name, mode)
         if stdfspec is None:
             return None
@@ -69,9 +68,7 @@ def remote_side_bash_executor(func, *args, **kwargs):
             if os.path.dirname(fname):
                 os.makedirs(os.path.dirname(fname), exist_ok=True)
             fd = open(fname, mode)
-            print('fd', fd)
         except Exception as e:
-            print('raise')
             raise pe.BadStdStreamFile(str(fname)) from e
         return fd
 
@@ -85,10 +82,10 @@ def remote_side_bash_executor(func, *args, **kwargs):
     returncode = None
     try:
         if platform.system() == 'Windows':
-            print('executing', executable)
-            # to use this on Windows, bash must be available on the path
+            # to use this on Windows, a bash executable must be available
+            bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
             proc = subprocess.Popen(
-                ['bash', '-c', executable], stdout=std_out, stderr=std_err,
+                [bash, '-c', executable], stdout=std_out, stderr=std_err,
                 close_fds=False)
         else:
             proc = subprocess.Popen(
