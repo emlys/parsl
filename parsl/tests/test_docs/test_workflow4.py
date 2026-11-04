@@ -6,8 +6,7 @@ from parsl.data_provider.files import File
 
 
 @bash_app
-def generate(outputs=(), stdout=parsl.AUTO_LOGNAME, stderr=parsl.AUTO_LOGNAME, label='generate'):
-    print('outputs:', outputs)
+def generate(outputs=(), stdout=parsl.AUTO_LOGNAME, stderr=parsl.AUTO_LOGNAME):
     return "echo 1 > {o} 2>&1".format(o=outputs[0])
 
 
