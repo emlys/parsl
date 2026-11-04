@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import parsl
@@ -26,10 +28,12 @@ def total(inputs=()):
 def test_parallel_dataflow(tmpd_cwd, width):
     """Test parallel dataflow from docs on Composing workflows
     """
+    for i in range(width):
+        os.makedirs(tmpd_cwd / f"dir-{i}")
 
     # create n files with the contents "1"
     output_files = [
-        generate(outputs=[File(str(tmpd_cwd / f"file-{i}.txt"))])
+        generate(outputs=[File(str(tmpd_cwd / f"dir-{i}" / f"file-{i}.txt"))])
         for i in range(width)
     ]
 
