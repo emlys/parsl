@@ -25,7 +25,7 @@ from parsl.executors.errors import (
     InvalidResourceSpecification,
     ScalingFailed,
 )
-from parsl.executors.high_throughput import interchange, zmq_pipes
+from parsl.executors.high_throughput import interchange, process_worker_pool, zmq_pipes
 from parsl.executors.high_throughput.errors import CommandClientTimeoutError
 from parsl.executors.high_throughput.manager_selector import (
     ManagerSelector,
@@ -46,12 +46,8 @@ from parsl.utils import RepresentationMixin
 
 logger = logging.getLogger(__name__)
 
-if platform.system() == 'Windows':
-    process_worker_pool_script = Path(
-        __file__).parent / 'process_worker_pool.py'
-else:
-    process_worker_pool_script = 'process_worker_pool.py'
-DEFAULT_LAUNCH_CMD = (f"{process_worker_pool_script} "
+
+DEFAULT_LAUNCH_CMD = (f"{process_worker_pool.__file__} "
                       "{debug} {max_workers_per_node} "
                       "-a {addresses} "
                       "-p {prefetch_capacity} "
