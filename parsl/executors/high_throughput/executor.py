@@ -2,7 +2,6 @@ import logging
 import math
 import os
 import pickle
-import platform
 import subprocess
 import sys
 import threading
@@ -11,7 +10,6 @@ import warnings
 from collections import defaultdict
 from concurrent.futures import Future
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import typeguard
