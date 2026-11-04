@@ -1,11 +1,12 @@
 import pytest
 
+import parsl
 from parsl.app.app import bash_app, python_app
 from parsl.data_provider.files import File
 
 
 @bash_app
-def generate(outputs=()):
+def generate(outputs=(), stdout=parsl.AUTO_LOGNAME, stderr=parsl.AUTO_LOGNAME, label='generate'):
     print('outputs:', outputs)
     return "echo 1 > {o} 2>&1".format(o=outputs[0])
 
@@ -27,9 +28,9 @@ def test_parallel_dataflow(tmpd_cwd, width):
     """Test parallel dataflow from docs on Composing workflows
     """
 
-    # create 5 files with random numbers
+    # create n files with the contents "1"
     output_files = [
-        generate(outputs=[File(str(tmpd_cwd / f"random-{i}.txt"))])
+        generate(outputs=[File(str(tmpd_cwd / f"file-{i}.txt"))])
         for i in range(width)
     ]
 
@@ -39,6 +40,6 @@ def test_parallel_dataflow(tmpd_cwd, width):
         outputs=[File(str(tmpd_cwd / "all.txt"))]
     )
 
-    # calculate the average of the random numbers
+    # calculate the sum of the numbers
     totals = total(inputs=[cc.outputs[0]])
     assert totals.result() == len(output_files)
