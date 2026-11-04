@@ -36,8 +36,10 @@ def test_parallel_dataflow(tmpd_cwd, width):
     for i in range(width):
         subdir = tmpd_cwd / f"dir-{i}"
         os.makedirs(subdir)
+        filepath = subdir / f"file-{i}.txt"
+        filepath.touch()
         output_files.append(
-            generate(outputs=[File(str(subdir / f"file-{i}.txt"))]))
+            generate(outputs=[File(str(filepath))]))
 
     # concatenate the files into a single file
     cc = concat(
