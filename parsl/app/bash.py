@@ -52,6 +52,7 @@ def remote_side_bash_executor(func, *args, **kwargs):
 
     def open_std_fd(fdname):
         # fdname is 'stdout' or 'stderr'
+        print('opening', fdname)
         stdfspec = kwargs.get(fdname)  # spec is str name or tuple (name, mode)
         if stdfspec is None:
             return None
@@ -68,7 +69,9 @@ def remote_side_bash_executor(func, *args, **kwargs):
             if os.path.dirname(fname):
                 os.makedirs(os.path.dirname(fname), exist_ok=True)
             fd = open(fname, mode)
+            print('fd', fd)
         except Exception as e:
+            print('raise')
             raise pe.BadStdStreamFile(str(fname)) from e
         return fd
 
