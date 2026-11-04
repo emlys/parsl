@@ -16,7 +16,7 @@ def fresh_config():
                 provider=LocalProvider(
                     init_blocks=1,
                     max_blocks=1,
-                #     launcher=SimpleLauncher(),
+                    launcher=SimpleLauncher(),
                 ),
             )
         ],
