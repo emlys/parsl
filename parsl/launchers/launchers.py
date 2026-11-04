@@ -20,8 +20,9 @@ class SimpleLauncher(Launcher):
             logger.warning('Simple Launcher only supports single node per block. '
                            f'Requested nodes: {nodes_per_block}. '
                            'You may be getting fewer workers than expected')
-        print('launcher returning', command)
-        return command
+        x = f'{sys.executable} {command}'
+        print('launcher returning', x)
+        return x
 
 
 class WrappedLauncher(Launcher):
