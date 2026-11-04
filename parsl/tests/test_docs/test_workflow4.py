@@ -28,14 +28,16 @@ def total(inputs=()):
 def test_parallel_dataflow(tmpd_cwd, width):
     """Test parallel dataflow from docs on Composing workflows
     """
-    for i in range(width):
-        os.makedirs(tmpd_cwd / f"dir-{i}")
-
+    output_files = []
     # create n files with the contents "1"
-    output_files = [
-        generate(outputs=[File(str(tmpd_cwd / f"dir-{i}" / f"file-{i}.txt"))])
-        for i in range(width)
-    ]
+    # put each file in its own subdirectory to avoid a race condition on
+    # Windows where creating a larger number files in the same directory
+    # simultaneously would cause some to fail
+    for i in range(width):
+        subdir = tmpd_cwd / f"dir-{i}"
+        os.makedirs(subdir)
+        output_files.append(
+            generate(outputs=[File(str(subdir / f"file-{i}.txt"))]))
 
     # concatenate the files into a single file
     cc = concat(
