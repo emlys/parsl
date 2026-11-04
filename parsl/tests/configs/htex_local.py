@@ -12,10 +12,10 @@ def fresh_config():
                 loopback_address="::1",
                 worker_debug=True,
                 cores_per_worker=1,
+                max_workers_per_node=2,
                 encrypted=False,
                 provider=LocalProvider(
                     init_blocks=1,
-                    max_workers_per_node=2,
                     max_blocks=1,
                     launcher=SimpleLauncher(),
                 ),
