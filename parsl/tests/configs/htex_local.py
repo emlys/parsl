@@ -14,9 +14,9 @@ def fresh_config():
                 cores_per_worker=1,
                 encrypted=False,
                 provider=LocalProvider(
-                    init_blocks=1,
-                    max_blocks=1,
-                    launcher=SimpleLauncher(),
+                #     init_blocks=1,
+                #     max_blocks=1,
+                #     launcher=SimpleLauncher(),
                 ),
             )
         ],
