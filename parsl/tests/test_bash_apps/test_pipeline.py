@@ -49,7 +49,7 @@ def test_increment(tmpd_cwd, depth=5):
 
     for key, f in futs:
         file = f.result()
-        expected = str(tmpd_cwd / f"test{key}.txt")
+        expected = (tmpd_cwd / f"test{key}.txt").as_posix()
 
         assert file.local_path is None, "File on local side has overridden local_path, file: {}".format(repr(file))
         assert file.filepath == expected, "Submit side filepath has not been preserved over execution"

@@ -15,11 +15,11 @@ class SerializerBase:
         """Compute identifier used in serialization header.
         This will be used to indicate in byte streams that this class should
         be used for deserialization.
-￼
-￼       Serializers that use identifiers that don't align with the way this is
+
+        Serializers that use identifiers that don't align with the way this is
         computed (such as the default concretes.py implementations) should
         override this property with their own identifier.
-￼
+
         Returns
         -------
         identifier : bytes

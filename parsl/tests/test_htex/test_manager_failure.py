@@ -1,4 +1,5 @@
 import os
+import platform
 import signal
 import time
 
@@ -34,8 +35,13 @@ def kill_manager(sig: int):
     os.kill(os.getppid(), sig)
 
 
+SHUTDOWN_SIGNALS = [signal.SIGTERM]
+if platform.system() != 'Windows':
+    SHUTDOWN_SIGNALS.append(signal.SIGKILL)
+
+
 @pytest.mark.local
-@pytest.mark.parametrize("sig", [signal.SIGTERM, signal.SIGKILL])
+@pytest.mark.parametrize("sig", SHUTDOWN_SIGNALS)
 def test_htex_manager_failure_worker_shutdown(sig: int):
     """Ensure that HTEX workers shut down when the Manager process dies."""
     worker_pid = get_worker_pid().result()

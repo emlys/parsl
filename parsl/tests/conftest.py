@@ -3,6 +3,7 @@ import itertools
 import logging
 import os
 import pathlib
+import platform
 import random
 import re
 import shutil
@@ -45,7 +46,8 @@ def dumpstacks(sig, frame):
 
 
 def pytest_sessionstart(session):
-    signal.signal(signal.SIGUSR1, dumpstacks)
+    if platform.system() != 'Windows':
+        signal.signal(signal.SIGUSR1, dumpstacks)
 
 
 @pytest.fixture(scope="session")
@@ -87,7 +89,13 @@ def tmpd_cwd_session(pytestconfig):
                 _chmod(rpath / d, 0o700)
             for f in fnames:
                 _chmod(rpath / f, 0o600)
-        shutil.rmtree(run_to_remove)
+        for _ in range(3):
+            try:
+                shutil.rmtree(run_to_remove)
+                break
+            except PermissionError:
+                time.sleep(1)
+        raise RuntimeError(f'failed to remove {run_to_remove} after 3 tries')
 
 
 @pytest.fixture

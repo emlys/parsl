@@ -60,7 +60,7 @@ def fresh_config():
         retries=2,
         monitoring=MonitoringHub(
                         monitoring_debug=False,
-                        resource_monitoring_interval=1,
+                        resource_monitoring_interval=0,
         ),
         usage_tracking=3,
         project_name="parsl htex_local_alternate test configuration",

@@ -1,3 +1,5 @@
+import platform
+
 import pytest
 
 import parsl.app.errors as pe
@@ -35,8 +37,10 @@ def div_0(stderr='std.err', stdout='std.out'):
 
 @bash_app
 def not_executable(stderr='std.err', stdout='std.out'):
-    cmd_line = '/dev/null'
-    return cmd_line
+    """Return a path that exists on the system but isn't executable."""
+    if platform.system() == 'Windows':
+        return 'C:/Windows'
+    return '/dev/null'
 
 
 exit_codes = {

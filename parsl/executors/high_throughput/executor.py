@@ -3,6 +3,7 @@ import math
 import os
 import pickle
 import subprocess
+import sys
 import threading
 import typing
 import warnings
@@ -22,7 +23,7 @@ from parsl.executors.errors import (
     InvalidResourceSpecification,
     ScalingFailed,
 )
-from parsl.executors.high_throughput import zmq_pipes
+from parsl.executors.high_throughput import interchange, process_worker_pool, zmq_pipes
 from parsl.executors.high_throughput.errors import CommandClientTimeoutError
 from parsl.executors.high_throughput.manager_selector import (
     ManagerSelector,
@@ -43,7 +44,9 @@ from parsl.utils import RepresentationMixin
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_LAUNCH_CMD = ("process_worker_pool.py {debug} {max_workers_per_node} "
+
+DEFAULT_LAUNCH_CMD = (f"{process_worker_pool.__file__} "
+                      "{debug} {max_workers_per_node} "
                       "-a {addresses} "
                       "-p {prefetch_capacity} "
                       "-c {cores_per_worker} "
@@ -63,7 +66,9 @@ DEFAULT_LAUNCH_CMD = ("process_worker_pool.py {debug} {max_workers_per_node} "
                       "--mpi-launcher={mpi_launcher} "
                       "--available-accelerators {accelerators}")
 
-DEFAULT_INTERCHANGE_LAUNCH_CMD = ["interchange.py"]
+# for Windows compatibility, point to full path of python executable
+# and interchange script
+DEFAULT_INTERCHANGE_LAUNCH_CMD = [sys.executable, interchange.__file__]
 
 GENERAL_HTEX_PARAM_DOCS = """provider : :class:`~parsl.providers.base.ExecutionProvider`
        Provider to access computation resources. Can be one of :class:`~parsl.providers.aws.aws.EC2Provider`,

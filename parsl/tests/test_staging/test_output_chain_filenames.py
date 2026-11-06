@@ -18,7 +18,7 @@ def app2(inputs=(), outputs=(), stdout=None, stderr=None, mock=False):
 
 @pytest.mark.shared_fs
 def test_behavior(tmpd_cwd):
-    expected_path = str(tmpd_cwd / "simple-out.txt")
+    expected_path = (tmpd_cwd / "simple-out.txt").as_posix()
     app1_future = app1(
         inputs=[],
         outputs=[File(expected_path)]
@@ -29,7 +29,7 @@ def test_behavior(tmpd_cwd):
 
     app2_future = app2(
         inputs=[o],
-        outputs=[File(str(tmpd_cwd / "simple-out2.txt"))]
+        outputs=[File((tmpd_cwd / "simple-out2.txt").as_posix())]
     )
     app2_future.result()
 

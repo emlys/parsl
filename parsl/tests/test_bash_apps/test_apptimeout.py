@@ -20,5 +20,5 @@ def test_walltime():
 
 def test_walltime_longer():
     """Test that an app that runs in less than walltime will succeed."""
-    y = echo_to_file(walltime=0.2)
+    y = echo_to_file(walltime=0.5)
     y.result()

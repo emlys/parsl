@@ -1,4 +1,5 @@
 import logging
+import platform
 
 import pytest
 
@@ -43,8 +44,10 @@ def test_bad_stdout_specs(err_type, spec):
 @pytest.mark.issue3328
 @pytest.mark.unix_filesystem_permissions_required
 def test_bad_stdout_file():
-    """Testing bad stderr file"""
+    """Testing bad stdout file"""
     o = "/bad/dir/t2.out"
+    if platform.system() == 'Windows':
+        o = f'X:{o}'
     with pytest.raises(BadStdStreamFile):
         echo_to_streams("Hello world", stdout=o, stderr='t.err').result()
 
@@ -53,8 +56,9 @@ def test_bad_stdout_file():
 @pytest.mark.unix_filesystem_permissions_required
 def test_bad_stderr_file():
     """Testing bad stderr file"""
-
     err = "/bad/dir/t2.err"
+    if platform.system() == 'Windows':
+        err = f'X:{err}'
     with pytest.raises(BadStdStreamFile):
         echo_to_streams("Hello world", stderr=err).result()
 
