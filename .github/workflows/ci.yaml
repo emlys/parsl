@@ -83,6 +83,11 @@ jobs:
         make test
         ln -s pytest-parsl/parsltest-current test_runinfo
 
+    - name: check windows logs
+      if: ${{ matrix.os == 'windows-latest' }}
+      shell: pwsh
+      run: Get-WinEvent -FilterHashtable @{LogName='Application'; Level=2,3; StartTime=(Get-Date).AddMinutes(-10)}
+
     - name: Documentation checks
       run: |
         source ${{ matrix.venv_path }}

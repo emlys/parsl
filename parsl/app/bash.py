@@ -1,5 +1,7 @@
 import logging
 import platform
+import shutil
+from datetime import datetime
 from functools import partial
 from inspect import Parameter, signature
 
@@ -84,6 +86,7 @@ def remote_side_bash_executor(func, *args, **kwargs):
         if platform.system() == 'Windows':
             # to use this on Windows, a bash executable must be available
             bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
+            launch_time = datetime.now()
             proc = subprocess.Popen(
                 [bash, '-c', executable],
                 # setting stdin seems to resolve a race condition in Git Bash
@@ -95,6 +98,7 @@ def remote_side_bash_executor(func, *args, **kwargs):
                 executable, stdout=std_out, stderr=std_err,
                 shell=True, executable='/bin/bash', close_fds=False)
         proc.wait(timeout=timeout)
+        exit_time = datetime.now()
         returncode = proc.returncode
 
     except subprocess.TimeoutExpired:
@@ -104,6 +108,11 @@ def remote_side_bash_executor(func, *args, **kwargs):
         raise pe.AppException(f"App {func_name} caught exception", e)
 
     if returncode != 0:
+        logger.info(f'process launched: {launch_time}')
+        logger.info(f'process exited: {exit_time}')
+        logger.info(f'current process: {os.getpid()}')
+        logger.info(f'bash exe: {shutil.which(bash)}')
+        logger.info(f'return code: {proc.returncode} {hex(proc.returncode)}')
         raise pe.BashExitFailure(func_name, proc.returncode)
 
     # TODO : Add support for globs here
