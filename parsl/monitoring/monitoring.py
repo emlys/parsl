@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import multiprocessing.synchronize as ms
 import os
+import platform
 import warnings
 from multiprocessing.queues import Queue
 from typing import Any, Optional, Union
@@ -113,6 +114,10 @@ class MonitoringHub(RepresentationMixin):
         self.workflow_version = workflow_version
 
         self.resource_monitoring_enabled = resource_monitoring_enabled
+        if self.resource_monitoring_enabled and platform.system() == 'Windows':
+            logger.info('Resource monitoring is disabled on Windows.')
+            self.resource_monitoring_enabled = False
+
         self.resource_monitoring_interval = resource_monitoring_interval
 
     def start(self, dfk_run_dir: str, config_run_dir: Union[str, os.PathLike], log_config: Optional[LogConfig]) -> None:
