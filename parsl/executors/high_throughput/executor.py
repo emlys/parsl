@@ -66,9 +66,8 @@ DEFAULT_LAUNCH_CMD = (f"{process_worker_pool.__file__} "
                       "--mpi-launcher={mpi_launcher} "
                       "--available-accelerators {accelerators}")
 
-# for Windows compatibility, point to full path of python executable
-# and interchange script
-DEFAULT_INTERCHANGE_LAUNCH_CMD = [sys.executable, interchange.__file__]
+# for Windows compatibility, point to full path of interchange script
+DEFAULT_INTERCHANGE_LAUNCH_CMD = [interchange.__file__]
 
 GENERAL_HTEX_PARAM_DOCS = """provider : :class:`~parsl.providers.base.ExecutionProvider`
        Provider to access computation resources. Can be one of :class:`~parsl.providers.aws.aws.EC2Provider`,
