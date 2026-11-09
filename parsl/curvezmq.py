@@ -30,6 +30,9 @@ def create_certificates(base_dir: Union[str, os.PathLike]):
 def _load_certificate(
     cert_dir: Union[str, os.PathLike], name: str
 ) -> Tuple[bytes, bytes]:
+    if not os.path.exists(cert_dir):
+        raise ValueError(f"The certificates directory does not exist: {cert_dir}")
+
     # don't attempt to set or check directory permissions on Windows for now
     # that would require using the pywin32 library and I'm not sure it's worth it
     if platform.system() != 'Windows' and os.stat(cert_dir).st_mode & 0o777 != 0o700:
