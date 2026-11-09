@@ -189,12 +189,12 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         '''
         job_name = "{0}.{1}".format(job_name, time.time())
 
-        if platform.system() == 'Windows':
-            script_path = "{0}/{1}.ps1".format(self.script_dir, job_name)
-            jobname_cmd = f'\n$env:JOBNAME = "{job_name}"\n'
-        else:
-            script_path = "{0}/{1}.sh".format(self.script_dir, job_name)
-            jobname_cmd = f'\nexport JOBNAME={job_name}\n'
+        # if platform.system() == 'Windows':
+        #     script_path = "{0}/{1}.ps1".format(self.script_dir, job_name)
+        #     jobname_cmd = f'\n$env:JOBNAME = "{job_name}"\n'
+        # else:
+        script_path = "{0}/{1}.sh".format(self.script_dir, job_name)
+        jobname_cmd = f'\nexport JOBNAME={job_name}\n'
         script_path = os.path.abspath(script_path)
         wrap_command = (self.worker_init + jobname_cmd +
                         self.launcher(command, tasks_per_node, self.nodes_per_block, self.script_dir))
@@ -218,27 +218,30 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         # We need to do the >/dev/null 2>&1 so that bash closes stdout, otherwise
         # execute_wait hangs reading the process stdout until all the
         # background commands complete.
-        if platform.system() == 'Windows':
-            cmd = (
-                f'powershell.exe -ExecutionPolicy Bypass -Command "'
-                f"Set-Content -Path '{script_path}.ec' -Value '-'; "
-                f"$p = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-ExecutionPolicy', 'Bypass', '-Command', "
-                f"'$proc = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList ''-ExecutionPolicy'', ''Bypass'', "
-                f"''-File'', ''{script_path}'' "
-                f"-RedirectStandardOutput ''{script_path}.out'' -RedirectStandardError ''{script_path}.err'' -PassThru -Wait; "
-                f"Set-Content -Path ''{script_path}.ec'' -Value $proc.ExitCode' -PassThru; "
-                f"Write-Host ('PID:' + $p.Id)"
-                f'"'
-            )
-        else:
-            cmd = textwrap.dedent(
-                f'''
-                /bin/bash -c 'echo - >{script_path}.ec &&
-                {{ {{
-                    bash {script_path} 1>{script_path}.out 2>{script_path}.err ;
-                    echo $? > {script_path}.ec ;
-                }} >/dev/null 2>&1 & echo "PID:$!" ; }}'
-                ''')
+        # if platform.system() == 'Windows':
+        #     cmd = (
+        #         f'powershell.exe -ExecutionPolicy Bypass -Command "'
+        #         f"Set-Content -Path '{script_path}.ec' -Value '-'; "
+        #         f"$p = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-ExecutionPolicy', 'Bypass', '-Command', "
+        #         f"'$proc = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList ''-ExecutionPolicy'', ''Bypass'', "
+        #         f"''-File'', ''{script_path}'' "
+        #         f"-RedirectStandardOutput ''{script_path}.out'' -RedirectStandardError ''{script_path}.err'' -PassThru -Wait; "
+        #         f"Set-Content -Path ''{script_path}.ec'' -Value $proc.ExitCode' -PassThru; "
+        #         f"Write-Host ('PID:' + $p.Id)"
+        #         f'"'
+        #     )
+        # else:
+        # to use this on Windows, a bash executable must be available
+        bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
+        cmd = textwrap.dedent(
+            f'''
+            {bash} -c 'echo - >{script_path}.ec &&
+            {{ {{
+                {bash} {script_path} 1>{script_path}.out 2>{script_path}.err ;
+                echo $? > {script_path}.ec ;
+            }} >/dev/null 2>&1 & echo "PID:$!" ; }}'
+            ''')
+
         print(cmd)
         retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
         if retcode != 0:
