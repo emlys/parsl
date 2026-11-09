@@ -1,6 +1,7 @@
 import logging
 import os
 import platform
+import subprocess
 import textwrap
 import time
 
@@ -147,7 +148,6 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
               SchedulerMissingArgs : If template is missing args
               ScriptPathError : Unable to write submit script out
         '''
-
         try:
             with open(script_filename, 'w') as f:
                 f.write(script_string)
@@ -218,43 +218,42 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         # We need to do the >/dev/null 2>&1 so that bash closes stdout, otherwise
         # execute_wait hangs reading the process stdout until all the
         # background commands complete.
-        # if platform.system() == 'Windows':
-        #     cmd = (
-        #         f'powershell.exe -ExecutionPolicy Bypass -Command "'
-        #         f"Set-Content -Path '{script_path}.ec' -Value '-'; "
-        #         f"$p = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-ExecutionPolicy', 'Bypass', '-Command', "
-        #         f"'$proc = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList ''-ExecutionPolicy'', ''Bypass'', "
-        #         f"''-File'', ''{script_path}'' "
-        #         f"-RedirectStandardOutput ''{script_path}.out'' -RedirectStandardError ''{script_path}.err'' -PassThru -Wait; "
-        #         f"Set-Content -Path ''{script_path}.ec'' -Value $proc.ExitCode' -PassThru; "
-        #         f"Write-Host ('PID:' + $p.Id)"
-        #         f'"'
-        #     )
-        # else:
+
         # to use this on Windows, a bash executable must be available
         bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
-        print('bash:', bash)
-        cmd = textwrap.dedent(
-            f'''
-            {bash} -c 'echo - >{script_path}.ec &&
-            {{ {{
-                {bash} {script_path} 1>{script_path}.out 2>{script_path}.err ;
-                echo $? > {script_path}.ec ;
-            }} >/dev/null 2>&1 & echo "PID:$!" ; }}'
-            ''')
-
+        cmd = f'{bash} {script_path}'
         print(cmd)
-        retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
-        if retcode != 0:
-            raise SubmitException(job_name, "Launch command exited with code {0}".format(retcode),
-                                  stdout, stderr)
-        for line in stdout.split('\n'):
-            if line.startswith("PID:"):
-                job_id = line.split("PID:")[1].strip()
-                remote_pid = int(job_id)
-                break
-        if job_id is None:
-            raise SubmitException(job_name, "Channel failed to start remote command/retrieve PID")
+
+        try:
+            with open(f'{script_path}.ec', 'w') as ec_file:
+                ec_file.write('-')
+            logger.debug("Creating process with command '%s'", cmd)
+            if platform.system() == "Windows":
+                kwargs = dict(creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+            else:
+                kwargs = dict(preexec_fn=os.setpgrp)
+            with open(f'{script_path}.out', 'w') as out, open(f'{script_path}.err', 'w') as err:
+                proc = subprocess.Popen(
+                    cmd,
+                    stdout=out,
+                    stderr=err,
+                    shell=True,
+                    **kwargs
+                )
+            logger.debug("Created process with pid %s. Performing communicate", proc.pid)
+            (stdout, stderr) = proc.communicate(timeout=self.cmd_timeout)
+            logger.debug("Process %s returned %s", proc.pid, proc.returncode)
+            with open(f'{script_path}.ec', 'w') as ec_file:
+                ec_file.write(str(proc.returncode))
+
+        except Exception:
+            pass
+
+        else:
+            logger.debug("Execution of command in process %s completed normally", proc.pid)
+
+        job_id = str(proc.pid)
+        remote_pid = proc.pid
 
         self.resources[job_id] = {'job_id': job_id, 'status': JobStatus(JobState.RUNNING),
                                   'remote_pid': remote_pid, 'script_path': script_path}

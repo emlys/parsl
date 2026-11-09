@@ -115,9 +115,10 @@ class SingleNodeLauncher(Launcher):
         #     }}
         #     ''')
         # else:
+        cores = os.cpu_count()
         return textwrap.dedent(f'''
         set -e
-        export CORES=$(getconf _NPROCESSORS_ONLN)
+        export CORES={cores}
         [[ "{debug_num}" == "1" ]] && echo "Found cores : $CORES"
         WORKERCOUNT={task_blocks}
         FAILONANY={fail_on_any_num}
@@ -150,7 +151,7 @@ class SingleNodeLauncher(Launcher):
             exit $ALLFAILED
         fi
         ''')
-        # cores = os.cpu_count()
+
         # logger.debug(f'Found cores: {cores}')
         # processes = []
         # anyfailed = False
