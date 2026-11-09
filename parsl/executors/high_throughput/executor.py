@@ -46,7 +46,7 @@ from parsl.utils import RepresentationMixin
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_LAUNCH_CMD = (f"{pathlib.Path(process_worker_pool.__file__).as_posix()} "
+DEFAULT_LAUNCH_CMD = (f"{sys.executable} {pathlib.Path(process_worker_pool.__file__).as_posix()} "
                       "{debug} {max_workers_per_node} "
                       "-a {addresses} "
                       "-p {prefetch_capacity} "
