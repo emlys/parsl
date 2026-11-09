@@ -154,7 +154,9 @@ def test_create_certificates_overwrite(tmpd_cwd: pathlib.Path):
 
 
 @pytest.mark.local
-@pytest.mark.skipif(platform.system() == 'Windows')
+@pytest.mark.skipif(
+    platform.system() == "Windows",
+    reason="private directories not supported on Windows")
 def test_cert_dir_not_private(tmpd_cwd: pathlib.Path):
     cert_dir = tmpd_cwd / "certificates"
     os.makedirs(cert_dir, mode=0o777)
