@@ -36,6 +36,7 @@ def double(x):
 @pytest.mark.local
 def test_get_connected_blocks():
     """Test reporting of connected blocks from HTEX"""
+    from pudb import set_trace; set_trace()
     dfk = parsl.dfk()
     executor = dfk.executors["HTEX"]
 
