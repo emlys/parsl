@@ -1,6 +1,7 @@
 import logging
 import math
 import os
+import pathlib
 import pickle
 import subprocess
 import sys
@@ -45,7 +46,7 @@ from parsl.utils import RepresentationMixin
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_LAUNCH_CMD = (f"{process_worker_pool.__file__} "
+DEFAULT_LAUNCH_CMD = (f"{pathlib.Path(process_worker_pool.__file__).as_posix()} "
                       "{debug} {max_workers_per_node} "
                       "-a {addresses} "
                       "-p {prefetch_capacity} "
@@ -68,7 +69,7 @@ DEFAULT_LAUNCH_CMD = (f"{process_worker_pool.__file__} "
 
 # for Windows compatibility, point to full path of python executable
 # and interchange script
-DEFAULT_INTERCHANGE_LAUNCH_CMD = [sys.executable, interchange.__file__]
+DEFAULT_INTERCHANGE_LAUNCH_CMD = [sys.executable, pathlib.Path(interchange.__file__).as_posix()]
 
 GENERAL_HTEX_PARAM_DOCS = """provider : :class:`~parsl.providers.base.ExecutionProvider`
        Provider to access computation resources. Can be one of :class:`~parsl.providers.aws.aws.EC2Provider`,
