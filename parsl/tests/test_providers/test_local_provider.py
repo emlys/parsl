@@ -19,27 +19,27 @@ logger = logging.getLogger(__name__)
 
 
 def _run_tests(p: LocalProvider):
-    status = _run(p, 'true')
+    status = _run(p, 'exit 0')
     assert status.message is None
     assert status.state == JobState.COMPLETED
     assert status.exit_code == 0
     assert status.stdout == ''
     assert status.stderr == ''
 
-    status = _run(p, 'true', np=2)
+    status = _run(p, 'exit 0', np=2)
     assert status.message is None
     assert status.state == JobState.COMPLETED
     assert status.exit_code == 0
     assert status.stdout == ''
     assert status.stderr == ''
 
-    status = _run(p, 'false')
+    status = _run(p, 'exit 1')
     assert status.state == JobState.FAILED
     assert status.exit_code != 0
     assert status.stdout == ''
     assert status.stderr == ''
 
-    status = _run(p, 'false', np=2)
+    status = _run(p, 'exit 1', np=2)
     assert status.state == JobState.FAILED
     assert status.exit_code != 0
     assert status.stdout == ''

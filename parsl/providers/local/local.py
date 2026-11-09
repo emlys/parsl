@@ -1,7 +1,6 @@
 import logging
 import os
 import platform
-import signal
 import textwrap
 import time
 
@@ -240,6 +239,7 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
                     echo $? > {script_path}.ec ;
                 }} >/dev/null 2>&1 & echo "PID:$!" ; }}'
                 ''')
+        print(cmd)
         retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
         if retcode != 0:
             raise SubmitException(job_name, "Launch command exited with code {0}".format(retcode),

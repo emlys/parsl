@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import asyncio
 import datetime
 import logging
 import os
@@ -33,7 +32,6 @@ PKL_HEARTBEAT_CODE = pickle.dumps((2 ** 32) - 1)
 PKL_SHUTDOWN_CODE = pickle.dumps((2 ** 32) - 2)
 
 logger = logging.getLogger("parsl.executors.high_throughput.interchange")
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 class Interchange:
