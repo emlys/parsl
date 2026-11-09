@@ -1,6 +1,7 @@
 import logging
 import os
 import platform
+import signal
 import textwrap
 import time
 
@@ -270,11 +271,12 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
             job_dict = self.resources[job]
             job_dict['cancelled'] = True
             logger.debug("Terminating job/process ID: {0}".format(job))
-            cmd = "kill -- -$(ps -o pgid= {} | grep -o '[0-9]*')".format(job_dict['remote_pid'])
-            retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
-            if retcode != 0:
-                logger.warning("Failed to kill PID: {} and child processes on {}".format(job_dict['remote_pid'],
-                                                                                         self.label))
+            os.kill(job_dict['remote_pid'], signal.SIGKILL)
+            # cmd = "kill -- -$(ps -o pgid= {} | grep -o '[0-9]*')".format(job_dict['remote_pid'])
+            # retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
+            # if retcode != 0:
+            #     logger.warning("Failed to kill PID: {} and child processes on {}".format(job_dict['remote_pid'],
+            #                                                                              self.label))
 
         rets = [True for i in job_ids]
         return rets
