@@ -46,7 +46,8 @@ from parsl.utils import RepresentationMixin
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_LAUNCH_CMD = (f"{sys.executable} {pathlib.Path(process_worker_pool.__file__).as_posix()} "
+DEFAULT_LAUNCH_CMD = (f"{pathlib.Path(sys.executable).as_posix()} "
+                      f"{pathlib.Path(process_worker_pool.__file__).as_posix()} "
                       "{debug} {max_workers_per_node} "
                       "-a {addresses} "
                       "-p {prefetch_capacity} "
@@ -69,7 +70,9 @@ DEFAULT_LAUNCH_CMD = (f"{sys.executable} {pathlib.Path(process_worker_pool.__fil
 
 # for Windows compatibility, point to full path of python executable
 # and interchange script
-DEFAULT_INTERCHANGE_LAUNCH_CMD = [sys.executable, pathlib.Path(interchange.__file__).as_posix()]
+DEFAULT_INTERCHANGE_LAUNCH_CMD = [
+    pathlib.Path(sys.executable).as_posix(),
+    pathlib.Path(interchange.__file__).as_posix()]
 
 GENERAL_HTEX_PARAM_DOCS = """provider : :class:`~parsl.providers.base.ExecutionProvider`
        Provider to access computation resources. Can be one of :class:`~parsl.providers.aws.aws.EC2Provider`,
