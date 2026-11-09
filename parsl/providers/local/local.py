@@ -233,6 +233,7 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         # else:
         # to use this on Windows, a bash executable must be available
         bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
+        print('bash:', bash)
         cmd = textwrap.dedent(
             f'''
             {bash} -c 'echo - >{script_path}.ec &&
