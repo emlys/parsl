@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import sys
 from subprocess import Popen, TimeoutExpired
 from typing import Optional, Sequence
 from unittest import mock
@@ -155,7 +156,7 @@ def test_htex_interchange_launch_cmd(cmd: Optional[Sequence[str]]):
         assert htex.interchange_launch_cmd == cmd
     else:
         htex = HighThroughputExecutor()
-        assert htex.interchange_launch_cmd == [interchange.__file__]
+        assert htex.interchange_launch_cmd == [sys.executable, interchange.__file__]
 
 
 def dyn_exec(buf, *vec_y):
