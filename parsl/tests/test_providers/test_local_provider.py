@@ -19,39 +19,39 @@ logger = logging.getLogger(__name__)
 
 
 def _run_tests(p: LocalProvider):
-    status = _run(p, '/bin/true')
+    status = _run(p, 'true')
     assert status.message is None
     assert status.state == JobState.COMPLETED
     assert status.exit_code == 0
     assert status.stdout == ''
     assert status.stderr == ''
 
-    status = _run(p, '/bin/true', np=2)
+    status = _run(p, 'true', np=2)
     assert status.message is None
     assert status.state == JobState.COMPLETED
     assert status.exit_code == 0
     assert status.stdout == ''
     assert status.stderr == ''
 
-    status = _run(p, '/bin/false')
+    status = _run(p, 'false')
     assert status.state == JobState.FAILED
     assert status.exit_code != 0
     assert status.stdout == ''
     assert status.stderr == ''
 
-    status = _run(p, '/bin/false', np=2)
+    status = _run(p, 'false', np=2)
     assert status.state == JobState.FAILED
     assert status.exit_code != 0
     assert status.stdout == ''
     assert status.stderr == ''
 
-    status = _run(p, '/bin/echo -n magic')
+    status = _run(p, 'echo -n magic')
     assert status.state == JobState.COMPLETED
     assert status.exit_code == 0
     assert status.stdout == 'magic'
     assert status.stderr == ''
 
-    status = _run(p, '/bin/echo -n magic 1>&2')
+    status = _run(p, 'echo -n magic 1>&2')
     assert status.state == JobState.COMPLETED
     assert status.exit_code == 0
     assert status.stdout == ''
