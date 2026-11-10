@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 import platform
 import textwrap
 import time
@@ -195,7 +196,7 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         # else:
         script_path = "{0}/{1}.sh".format(self.script_dir, job_name)
         jobname_cmd = f'\nexport JOBNAME={job_name}\n'
-        script_path = os.path.abspath(script_path)
+        script_path = pathlib.Path(os.path.abspath(script_path)).as_posix()
         wrap_command = (self.worker_init + jobname_cmd +
                         self.launcher(command, tasks_per_node, self.nodes_per_block, self.script_dir))
         self._write_submit_script(wrap_command, script_path)
