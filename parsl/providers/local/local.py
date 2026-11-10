@@ -225,6 +225,7 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
 
         cmd = '{1} -c \'echo - >{0}.ec && {{ {{ {1} {0} 1>{0}.out 2>{0}.err ; ' \
               'echo $? > {0}.ec ; }} >/dev/null 2>&1 & echo "PID:$!" ; }}\''.format(script_path, bash)
+        print(cmd)
         retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
         if retcode != 0:
             raise SubmitException(job_name, "Launch command exited with code {0}".format(retcode),
