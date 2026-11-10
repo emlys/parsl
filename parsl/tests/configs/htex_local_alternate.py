@@ -36,37 +36,14 @@ def fresh_config():
     return Config(
         executors=[
             HighThroughputExecutor(
-                address="127.0.0.1",
-                label="htex_Local",
-                working_dir=working_dir,
-                storage_access=[ZipFileStaging(), FTPInTaskStaging(), HTTPInTaskStaging(), NoOpFileStaging()],
-                worker_debug=True,
+                label="htex_local",
                 cores_per_worker=1,
-                heartbeat_period=2,
-                heartbeat_threshold=5,
-                poll_period=100,
-                encrypted=True,
                 provider=LocalProvider(
-                    init_blocks=0,
-                    min_blocks=0,
-                    max_blocks=5,
-                    launcher=SingleNodeLauncher(),
+                    init_blocks=1,
+                    max_blocks=1,
                 ),
-                block_error_handler=False
             )
         ],
-        strategy='simple',
-        memoizer=BasicMemoizer(memoize=True, checkpoint_mode='task_exit'),
-        retries=2,
-        monitoring=MonitoringHub(
-                        monitoring_debug=False,
-                        resource_monitoring_interval=0,
-        ),
-        usage_tracking=3,
-        project_name="parsl htex_local_alternate test configuration",
-
-        # level 1 is even more debuggy than logging.DEBUG
-        initialize_logging=JSONLogging(level=1)
     )
 
 
