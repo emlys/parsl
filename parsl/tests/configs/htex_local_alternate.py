@@ -25,7 +25,6 @@ from parsl.data_provider.zip import ZipFileStaging
 from parsl.dataflow.memoization import BasicMemoizer
 from parsl.executors import HighThroughputExecutor
 from parsl.launchers import SingleNodeLauncher
-from parsl.launchers import SimpleLauncher
 from parsl.logconfigs.json import JSONLogging
 from parsl.monitoring import MonitoringHub
 from parsl.providers import LocalProvider
@@ -51,7 +50,7 @@ def fresh_config():
                     init_blocks=0,
                     min_blocks=0,
                     max_blocks=5,
-                    launcher=SimpleLauncher(),
+                    launcher=SingleNodeLauncher(),
                 ),
                 block_error_handler=False
             )
