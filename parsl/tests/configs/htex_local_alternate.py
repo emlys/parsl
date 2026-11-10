@@ -47,4 +47,16 @@ def fresh_config():
     )
 
 
-config = fresh_config()
+# config = fresh_config()
+config = Config(
+    executors=[
+        HighThroughputExecutor(
+            label="htex_local",
+            cores_per_worker=1,
+            provider=LocalProvider(
+                init_blocks=1,
+                max_blocks=1,
+            ),
+        )
+    ],
+)
