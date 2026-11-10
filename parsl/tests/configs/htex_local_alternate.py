@@ -28,6 +28,8 @@ from parsl.launchers import SingleNodeLauncher
 from parsl.logconfigs.json import JSONLogging
 from parsl.monitoring import MonitoringHub
 from parsl.providers import LocalProvider
+from parsl.usage_tracking.levels import LEVEL_1
+
 
 working_dir = os.getcwd() + "/" + "test_htex_alternate"
 
@@ -42,6 +44,7 @@ config = Config(
             ),
         )
     ],
+    usage_tracking=LEVEL_1,
 )
 
 # def fresh_config():
