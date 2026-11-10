@@ -715,6 +715,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
               Future
         """
         print('executor submit')
+        from pudb import set_trace; set_trace()
         self.validate_resource_spec(resource_specification)
 
         # handle people sending blobs gracefully
