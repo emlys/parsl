@@ -30,35 +30,45 @@ from parsl.monitoring import MonitoringHub
 from parsl.providers import LocalProvider
 from parsl.usage_tracking.levels import LEVEL_1
 
-
 working_dir = os.getcwd() + "/" + "test_htex_alternate"
 
-config = Config(
-    executors=[
-        HighThroughputExecutor(
-            label="htex_local",
-            cores_per_worker=1,
-            provider=LocalProvider(
-                init_blocks=1,
-                max_blocks=1,
-            ),
-        )
-    ],
-    usage_tracking=LEVEL_1,
-)
 
-# def fresh_config():
-#     # return Config(
-#     #     executors=[
-#     #         HighThroughputExecutor(
-#     #             label="htex_local",
-#     #             cores_per_worker=1,
-#     #             provider=LocalProvider(
-#     #                 init_blocks=1,
-#     #                 max_blocks=1,
-#     #             ),
-#     #         )
-#     #     ],
-#     # )
-#     return config
+def fresh_config():
+    return Config(
+        executors=[
+            HighThroughputExecutor(
+                address="127.0.0.1",
+                label="htex_Local",
+                working_dir=working_dir,
+                storage_access=[ZipFileStaging(), FTPInTaskStaging(), HTTPInTaskStaging(), NoOpFileStaging()],
+                worker_debug=True,
+                cores_per_worker=1,
+                heartbeat_period=2,
+                heartbeat_threshold=5,
+                poll_period=100,
+                encrypted=True,
+                provider=LocalProvider(
+                    init_blocks=0,
+                    min_blocks=0,
+                    max_blocks=5,
+                    launcher=SingleNodeLauncher(),
+                ),
+                block_error_handler=False
+            )
+        ],
+        strategy='simple',
+        memoizer=BasicMemoizer(memoize=True, checkpoint_mode='task_exit'),
+        retries=2,
+        monitoring=MonitoringHub(
+                        monitoring_debug=False,
+                        resource_monitoring_interval=1,
+        ),
+        usage_tracking=LEVEL_1,
+        project_name="parsl htex_local_alternate test configuration",
 
+        # level 1 is even more debuggy than logging.DEBUG
+        initialize_logging=JSONLogging(level=1)
+    )
+
+
+config = fresh_config()
