@@ -31,7 +31,7 @@ from parsl.providers import LocalProvider
 
 working_dir = os.getcwd() + "/" + "test_htex_alternate"
 
-c = Config(
+config = Config(
     executors=[
         HighThroughputExecutor(
             label="htex_local",
@@ -57,9 +57,5 @@ def fresh_config():
     #         )
     #     ],
     # )
-    return c
-
-
-config = fresh_config()
-
+    return config
 
