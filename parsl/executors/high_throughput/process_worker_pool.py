@@ -5,6 +5,7 @@ import time
 _SCRIPT_LOAD_TIME = time.time()  # runs before imports
 
 import argparse
+import asyncio
 import importlib
 import logging
 import math
@@ -55,6 +56,9 @@ SHUTDOWN_CODE = (2 ** 32) - 2
 # expected use), __name__ which is the normal idiom here is set to __main__,
 # rather than a parsl submodule name.
 logger = logging.getLogger("parsl.executors.high_throughput.process_worker_pool")
+
+if platform.system() == "Windows":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 class Manager:

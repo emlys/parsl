@@ -17,8 +17,6 @@ from parsl.version import VERSION as PARSL_VERSION
 
 logger = logging.getLogger(__name__)
 
-from typing import Callable
-
 from typing_extensions import ParamSpec
 
 # protocol version byte: when (for example) compression parameters are changed
@@ -31,18 +29,12 @@ PROTOCOL_VERSION = b'1'
 P = ParamSpec("P")
 
 
-def async_process(fn: Callable[P, None]) -> Callable[P, None]:
-    """ Decorator function to launch a function as a separate process """
-
-    def run(*args, **kwargs):
-        proc = SpawnProcess(target=fn, args=args, kwargs=kwargs, name="Usage-Tracking")
-        proc.start()
-        return proc
-
-    return run
+def start_udp_messenger_process(*args, **kwargs):
+    proc = SpawnProcess(target=udp_messenger, args=args, kwargs=kwargs, name="Usage-Tracking")
+    proc.start()
+    return proc
 
 
-@async_process
 def udp_messenger(domain_name: str, UDP_PORT: int, sock_timeout: int, message: bytes) -> None:
     """Send UDP messages to usage tracker asynchronously
 
@@ -206,7 +198,8 @@ class UsageTracker:
     def send_UDP_message(self, message: bytes) -> None:
         """Send UDP message."""
         try:
-            proc = udp_messenger(self.domain_name, self.UDP_PORT, self.sock_timeout, message)
+            proc = start_udp_messenger_process(
+                self.domain_name, self.UDP_PORT, self.sock_timeout, message)
             self.procs.append(proc)
         except Exception as e:
             logger.debug("Usage tracking failed: {}".format(e))

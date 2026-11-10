@@ -7,12 +7,24 @@ on:
       - synchronize
   merge_group:
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   main-test-suite:
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-    runs-on: ubuntu-24.04
+        include:
+          - os: ubuntu-latest
+            venv_path: .venv/bin/activate
+          - os: windows-latest
+            venv_path: .venv/Scripts/activate
+
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
 
     steps:
@@ -36,6 +48,7 @@ jobs:
         echo "as-ascii=$as_ascii" >> $GITHUB_OUTPUT
 
     - name: Non-requirements based install
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         # libpython3.5: make workqueue binary installer happy
         # mpich: required by radical executor
@@ -44,18 +57,25 @@ jobs:
 
     - name: setup virtual env
       run: |
-        make virtualenv
-        source .venv/bin/activate
+        python3 -m venv .venv
+        source ${{ matrix.venv_path }}
 
     - name: make deps clean_coverage
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         make deps
         make clean_coverage
 
+    - name: Disable Windows Defender
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: Set-MpPreference -DisableRealtimeMonitoring $true
+      shell: powershell
+
     - name: make test
+      env:
+        PARSL_WINDOWS_BASH_EXE: 'C:\Program Files\Git\bin\bash.exe'
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
 
         # temporary; until test-matrixification
         export PARSL_TEST_PRESERVE_NUM_RUNS=7
@@ -63,9 +83,14 @@ jobs:
         make test
         ln -s pytest-parsl/parsltest-current test_runinfo
 
+    - name: check windows logs
+      if: ${{ matrix.os == 'windows-latest' }}
+      shell: pwsh
+      run: Get-WinEvent -FilterHashtable @{LogName='Application'; Level=2,3; StartTime=(Get-Date).AddMinutes(-10)}
+
     - name: Documentation checks
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         pip install .[docs]
         sudo apt-get install -y pandoc
         cd docs
@@ -89,14 +114,14 @@ jobs:
 
     - name: Checking parsl-visualize
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         sudo apt-get install -y graphviz
         pip install .[monitoring,visualization]
         parsl/tests/test-viz.sh
 
     - name: make coverage
       run: |
-        source .venv/bin/activate
+        source ${{ matrix.venv_path }}
         make coverage
 
     - name: Archive runinfo logs

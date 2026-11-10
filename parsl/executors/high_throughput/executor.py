@@ -1,8 +1,10 @@
 import logging
 import math
 import os
+import pathlib
 import pickle
 import subprocess
+import sys
 import threading
 import typing
 import warnings
@@ -22,7 +24,7 @@ from parsl.executors.errors import (
     InvalidResourceSpecification,
     ScalingFailed,
 )
-from parsl.executors.high_throughput import zmq_pipes
+from parsl.executors.high_throughput import interchange, process_worker_pool, zmq_pipes
 from parsl.executors.high_throughput.errors import CommandClientTimeoutError
 from parsl.executors.high_throughput.manager_selector import (
     ManagerSelector,
@@ -43,7 +45,10 @@ from parsl.utils import RepresentationMixin
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_LAUNCH_CMD = ("process_worker_pool.py {debug} {max_workers_per_node} "
+
+DEFAULT_LAUNCH_CMD = (f"{pathlib.Path(sys.executable).as_posix()} "
+                      f"{pathlib.Path(process_worker_pool.__file__).as_posix()} "
+                      "{debug} {max_workers_per_node} "
                       "-a {addresses} "
                       "-p {prefetch_capacity} "
                       "-c {cores_per_worker} "
@@ -63,7 +68,11 @@ DEFAULT_LAUNCH_CMD = ("process_worker_pool.py {debug} {max_workers_per_node} "
                       "--mpi-launcher={mpi_launcher} "
                       "--available-accelerators {accelerators}")
 
-DEFAULT_INTERCHANGE_LAUNCH_CMD = ["interchange.py"]
+# for Windows compatibility, point to full path of python executable
+# and interchange script
+DEFAULT_INTERCHANGE_LAUNCH_CMD = [
+    pathlib.Path(sys.executable).as_posix(),
+    pathlib.Path(interchange.__file__).as_posix()]
 
 GENERAL_HTEX_PARAM_DOCS = """provider : :class:`~parsl.providers.base.ExecutionProvider`
        Provider to access computation resources. Can be one of :class:`~parsl.providers.aws.aws.EC2Provider`,
@@ -538,6 +547,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
                         break
 
                     task_fut = self.tasks.pop(tid)
+                    print('popped task', task_fut)
 
                     if 'result' in msg:
                         result = deserialize(msg['result'])
@@ -705,7 +715,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
         Returns:
               Future
         """
-
+        print('executor submit')
         self.validate_resource_spec(resource_specification)
 
         # handle people sending blobs gracefully
@@ -780,6 +790,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
         task_id = self._task_counter
 
         fut = HTEXFuture(task_id)
+        from pudb import set_trace; set_trace()
         self.tasks[task_id] = fut
 
         msg = {"task_id": task_id, "context": context, "buffer": buffer}

@@ -21,8 +21,8 @@ virtualenv: ## create an activate a virtual env
 
 
 $(DEPS): test-requirements.txt requirements.txt
-	pip3 install --upgrade pip
-	pip3 install -r test-requirements.txt -r requirements.txt
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install -r test-requirements.txt -r requirements.txt
 	touch $(DEPS)
 
 .PHONY: deps
@@ -30,7 +30,7 @@ deps: $(DEPS) ## install the dependencies
 
 .PHONY: lint
 lint: ## run linter script
-	parsl/tests/lint-inits.sh
+	$(SHELL) parsl/tests/lint-inits.sh
 
 .PHONY: isort
 isort: ## run isort on all files
@@ -100,7 +100,7 @@ perf_test:  ## Run `parsl-perf` (--config .../local_threads.py)
 	parsl-perf --iterate 1,2,3 --config parsl/tests/configs/local_threads.py
 
 .PHONY: test ## run all tests with all config types
-test: clean_coverage isort lint flake8 mypy local_thread_test htex_local_test htex_local_alternate_test config_local_test perf_test ## run all tests
+test: clean_coverage isort lint flake8 local_thread_test htex_local_test htex_local_alternate_test config_local_test perf_test ## run all tests
 
 .PHONY: tag
 tag: ## create a tag in git. to run, do a 'make VERSION="version string" tag

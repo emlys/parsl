@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import sys
 from subprocess import Popen, TimeoutExpired
 from typing import Optional, Sequence
 from unittest import mock
@@ -137,23 +138,25 @@ def test_htex_shutdown(
 @pytest.mark.local
 @pytest.mark.parametrize("cmd", (None, "custom-launch-cmd"))
 def test_htex_worker_pool_launch_cmd(cmd: Optional[str]):
+    from parsl.executors.high_throughput import process_worker_pool
     if cmd:
         htex = HighThroughputExecutor(launch_cmd=cmd)
         assert htex.launch_cmd == cmd
     else:
         htex = HighThroughputExecutor()
-        assert htex.launch_cmd.startswith("process_worker_pool.py")
+        assert htex.launch_cmd.startswith(process_worker_pool.__file__)
 
 
 @pytest.mark.local
 @pytest.mark.parametrize("cmd", (None, ["custom", "launch", "cmd"]))
 def test_htex_interchange_launch_cmd(cmd: Optional[Sequence[str]]):
+    from parsl.executors.high_throughput import interchange
     if cmd:
         htex = HighThroughputExecutor(interchange_launch_cmd=cmd)
         assert htex.interchange_launch_cmd == cmd
     else:
         htex = HighThroughputExecutor()
-        assert htex.interchange_launch_cmd == ["interchange.py"]
+        assert htex.interchange_launch_cmd == [sys.executable, interchange.__file__]
 
 
 def dyn_exec(buf, *vec_y):

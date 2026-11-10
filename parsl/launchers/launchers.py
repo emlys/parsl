@@ -1,4 +1,8 @@
 import logging
+import os
+import platform
+import sys
+import textwrap
 
 from parsl.launchers.base import Launcher
 
@@ -17,7 +21,6 @@ class SimpleLauncher(Launcher):
             logger.warning('Simple Launcher only supports single node per block. '
                            f'Requested nodes: {nodes_per_block}. '
                            'You may be getting fewer workers than expected')
-
         return command
 
 
@@ -69,45 +72,42 @@ class SingleNodeLauncher(Launcher):
         task_blocks = tasks_per_node * nodes_per_block
         fail_on_any_num = int(self.fail_on_any)
         debug_num = int(self.debug)
+        cores = os.cpu_count()
+        return textwrap.dedent(f'''
+        set -e
+        export CORES={cores}
+        [[ "{debug_num}" == "1" ]] && echo "Found cores : $CORES"
+        WORKERCOUNT={task_blocks}
+        FAILONANY={fail_on_any_num}
+        PIDS=""
 
-        x = '''set -e
-export CORES=$(getconf _NPROCESSORS_ONLN)
-[[ "{debug}" == "1" ]] && echo "Found cores : $CORES"
-WORKERCOUNT={task_blocks}
-FAILONANY={fail_on_any}
-PIDS=""
+        CMD() {{
+        {command}
+        }}
+        for COUNT in $(seq 1 1 $WORKERCOUNT); do
+            [[ "{debug_num}" == "1" ]] && echo "Launching worker: $COUNT"
+            CMD $COUNT &
+            PIDS="$PIDS $!"
+        done
 
-CMD() {{
-{command}
-}}
-for COUNT in $(seq 1 1 $WORKERCOUNT); do
-    [[ "{debug}" == "1" ]] && echo "Launching worker: $COUNT"
-    CMD $COUNT &
-    PIDS="$PIDS $!"
-done
+        ALLFAILED=1
+        ANYFAILED=0
+        for PID in $PIDS ; do
+            wait $PID
+            if [ "$?" != "0" ]; then
+                ANYFAILED=1
+            else
+                ALLFAILED=0
+            fi
+        done
 
-ALLFAILED=1
-ANYFAILED=0
-for PID in $PIDS ; do
-    wait $PID
-    if [ "$?" != "0" ]; then
-        ANYFAILED=1
-    else
-        ALLFAILED=0
-    fi
-done
-
-[[ "{debug}" == "1" ]] && echo "All workers done"
-if [ "$FAILONANY" == "1" ]; then
-    exit $ANYFAILED
-else
-    exit $ALLFAILED
-fi
-'''.format(command=command,
-           task_blocks=task_blocks,
-           debug=debug_num,
-           fail_on_any=fail_on_any_num)
-        return x
+        [[ "{debug_num}" == "1" ]] && echo "All workers done"
+        if [ "$FAILONANY" == "1" ]; then
+            exit $ANYFAILED
+        else
+            exit $ALLFAILED
+        fi
+        ''')
 
 
 class GnuParallelLauncher(Launcher):

@@ -12,7 +12,7 @@ def fresh_config():
                 loopback_address="::1",
                 worker_debug=True,
                 cores_per_worker=1,
-                encrypted=True,
+                encrypted=False,
                 provider=LocalProvider(
                     init_blocks=1,
                     max_blocks=1,

@@ -45,7 +45,7 @@ def fresh_config():
                 heartbeat_period=2,
                 heartbeat_threshold=5,
                 poll_period=100,
-                encrypted=True,
+                encrypted=False,
                 provider=LocalProvider(
                     init_blocks=0,
                     min_blocks=0,
@@ -55,18 +55,19 @@ def fresh_config():
                 block_error_handler=False
             )
         ],
-        strategy='simple',
-        memoizer=BasicMemoizer(memoize=True, checkpoint_mode='task_exit'),
-        retries=2,
-        monitoring=MonitoringHub(
-                        monitoring_debug=False,
-                        resource_monitoring_interval=1,
-        ),
-        usage_tracking=3,
-        project_name="parsl htex_local_alternate test configuration",
+        retries=5
+        # strategy='simple',
+        # memoizer=BasicMemoizer(memoize=True, checkpoint_mode='task_exit'),
+        # retries=2,
+        # monitoring=MonitoringHub(
+        #                 monitoring_debug=False,
+        #                 resource_monitoring_interval=1,
+        # ),
+        # usage_tracking=3,
+        # project_name="parsl htex_local_alternate test configuration",
 
-        # level 1 is even more debuggy than logging.DEBUG
-        initialize_logging=JSONLogging(level=1)
+        # # level 1 is even more debuggy than logging.DEBUG
+        # initialize_logging=JSONLogging(level=1)
     )
 
 

@@ -1,5 +1,6 @@
 import os
 import pathlib
+import platform
 from typing import Union
 from unittest import mock
 
@@ -131,7 +132,8 @@ def test_create_certificates(tmpd_cwd: pathlib.Path):
 
     assert str(cert_dir) == ret
     assert os.path.exists(cert_dir)
-    assert os.stat(cert_dir).st_mode & 0o777 == 0o700
+    if platform.system() != 'Windows':
+        assert os.stat(cert_dir).st_mode & 0o777 == 0o700
     assert len(os.listdir(cert_dir)) == 4
 
 
@@ -152,6 +154,9 @@ def test_create_certificates_overwrite(tmpd_cwd: pathlib.Path):
 
 
 @pytest.mark.local
+@pytest.mark.skipif(
+    platform.system() == "Windows",
+    reason="private directories not supported on Windows")
 def test_cert_dir_not_private(tmpd_cwd: pathlib.Path):
     cert_dir = tmpd_cwd / "certificates"
     os.makedirs(cert_dir, mode=0o777)
@@ -178,13 +183,13 @@ def test_missing_cert_dir():
     client_ctx = curvezmq.ClientContext(cert_dir)
     server_ctx = curvezmq.ServerContext(cert_dir)
 
-    err_msg = "No such file or directory"
+    err_msg = "directory does not exist"
 
-    with pytest.raises(FileNotFoundError) as pyt_e:
+    with pytest.raises(ValueError) as pyt_e:
         client_ctx.socket(zmq.REQ)
     assert err_msg in str(pyt_e.value)
 
-    with pytest.raises(FileNotFoundError) as pyt_e:
+    with pytest.raises(ValueError) as pyt_e:
         server_ctx.socket(zmq.REP)
     assert err_msg in str(pyt_e.value)
 

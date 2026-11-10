@@ -17,7 +17,7 @@ def output_to_stds(*, stdout=parsl.AUTO_LOGNAME, stderr=parsl.AUTO_LOGNAME):
 
 @pytest.mark.staging_required
 def test_stdout_staging_file(tmpd_cwd, caplog):
-    basename = str(tmpd_cwd) + "/stdout.txt"
+    basename = (tmpd_cwd / "stdout.txt").as_posix()
     stdout_file = File("file://" + basename)
 
     app_future = output_to_stds(stdout=stdout_file)
