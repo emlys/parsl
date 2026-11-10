@@ -222,39 +222,54 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
 
         # to use this on Windows, a bash executable must be available
         bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
-        cmd = f'{bash} {script_path}'
-        print(cmd)
 
-        try:
-            with open(f'{script_path}.ec', 'w') as ec_file:
-                ec_file.write('-')
-            logger.debug("Creating process with command '%s'", cmd)
-            if platform.system() == "Windows":
-                kwargs = dict(creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
-            else:
-                kwargs = dict(preexec_fn=os.setpgrp)
-            with open(f'{script_path}.out', 'w') as out, open(f'{script_path}.err', 'w') as err:
-                proc = subprocess.Popen(
-                    cmd,
-                    stdout=out,
-                    stderr=err,
-                    shell=True,
-                    **kwargs
-                )
-            logger.debug("Created process with pid %s. Performing communicate", proc.pid)
-            (stdout, stderr) = proc.communicate(timeout=self.cmd_timeout)
-            logger.debug("Process %s returned %s", proc.pid, proc.returncode)
-            with open(f'{script_path}.ec', 'w') as ec_file:
-                ec_file.write(str(proc.returncode))
+        cmd = '{1} -c \'echo - >{0}.ec && {{ {{ {1} {0} 1>{0}.out 2>{0}.err ; ' \
+              'echo $? > {0}.ec ; }} >/dev/null 2>&1 & echo "PID:$!" ; }}\''.format(script_path, bash)
+        retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
+        if retcode != 0:
+            raise SubmitException(job_name, "Launch command exited with code {0}".format(retcode),
+                                  stdout, stderr)
+        for line in stdout.split('\n'):
+            if line.startswith("PID:"):
+                job_id = line.split("PID:")[1].strip()
+                remote_pid = int(job_id)
+                break
+        if job_id is None:
+            raise SubmitException(job_name, "Channel failed to start remote command/retrieve PID")
 
-        except Exception:
-            pass
+        # cmd = f'{bash} {script_path}'
+        # print(cmd)
 
-        else:
-            logger.debug("Execution of command in process %s completed normally", proc.pid)
+        # try:
+        #     with open(f'{script_path}.ec', 'w') as ec_file:
+        #         ec_file.write('-')
+        #     logger.debug("Creating process with command '%s'", cmd)
+        #     if platform.system() == "Windows":
+        #         kwargs = dict(creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        #     else:
+        #         kwargs = dict(preexec_fn=os.setpgrp)
+        #     with open(f'{script_path}.out', 'w') as out, open(f'{script_path}.err', 'w') as err:
+        #         proc = subprocess.Popen(
+        #             cmd,
+        #             stdout=out,
+        #             stderr=err,
+        #             shell=True,
+        #             **kwargs
+        #         )
+        #     logger.debug("Created process with pid %s. Performing communicate", proc.pid)
+        #     (stdout, stderr) = proc.communicate(timeout=self.cmd_timeout)
+        #     logger.debug("Process %s returned %s", proc.pid, proc.returncode)
+        #     with open(f'{script_path}.ec', 'w') as ec_file:
+        #         ec_file.write(str(proc.returncode))
 
-        job_id = str(proc.pid)
-        remote_pid = proc.pid
+        # except Exception:
+        #     pass
+
+        # else:
+        #     logger.debug("Execution of command in process %s completed normally", proc.pid)
+
+        # job_id = str(proc.pid)
+        # remote_pid = proc.pid
 
         self.resources[job_id] = {'job_id': job_id, 'status': JobStatus(JobState.RUNNING),
                                   'remote_pid': remote_pid, 'script_path': script_path}
