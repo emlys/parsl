@@ -547,6 +547,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
                         break
 
                     task_fut = self.tasks.pop(tid)
+                    print('popped task', task_fut)
 
                     if 'result' in msg:
                         result = deserialize(msg['result'])
@@ -715,7 +716,6 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
               Future
         """
         print('executor submit')
-        from pudb import set_trace; set_trace()
         self.validate_resource_spec(resource_specification)
 
         # handle people sending blobs gracefully
@@ -790,6 +790,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
         task_id = self._task_counter
 
         fut = HTEXFuture(task_id)
+        from pudb import set_trace; set_trace()
         self.tasks[task_id] = fut
 
         msg = {"task_id": task_id, "context": context, "buffer": buffer}
