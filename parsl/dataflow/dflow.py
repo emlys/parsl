@@ -336,7 +336,7 @@ class DataFlowKernel:
              future (Future) : The future object corresponding to the task which
              makes this callback
         """
-
+        print('handle exec update')
         task_id = task_record['id']
 
         task_record['try_time_returned'] = datetime.datetime.now()

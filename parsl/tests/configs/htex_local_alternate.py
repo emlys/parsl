@@ -55,6 +55,7 @@ def fresh_config():
                 block_error_handler=False
             )
         ],
+        retries=5
         # strategy='simple',
         # memoizer=BasicMemoizer(memoize=True, checkpoint_mode='task_exit'),
         # retries=2,

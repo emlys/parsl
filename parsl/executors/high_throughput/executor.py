@@ -714,7 +714,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, UsageIn
         Returns:
               Future
         """
-
+        print('executor submit')
         self.validate_resource_spec(resource_specification)
 
         # handle people sending blobs gracefully
