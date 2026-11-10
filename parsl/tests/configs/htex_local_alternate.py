@@ -31,24 +31,7 @@ from parsl.providers import LocalProvider
 
 working_dir = os.getcwd() + "/" + "test_htex_alternate"
 
-
-# def fresh_config():
-#     return Config(
-#         executors=[
-#             HighThroughputExecutor(
-#                 label="htex_local",
-#                 cores_per_worker=1,
-#                 provider=LocalProvider(
-#                     init_blocks=1,
-#                     max_blocks=1,
-#                 ),
-#             )
-#         ],
-#     )
-
-
-# config = fresh_config()
-config = Config(
+c = Config(
     executors=[
         HighThroughputExecutor(
             label="htex_local",
@@ -60,3 +43,23 @@ config = Config(
         )
     ],
 )
+
+def fresh_config():
+    # return Config(
+    #     executors=[
+    #         HighThroughputExecutor(
+    #             label="htex_local",
+    #             cores_per_worker=1,
+    #             provider=LocalProvider(
+    #                 init_blocks=1,
+    #                 max_blocks=1,
+    #             ),
+    #         )
+    #     ],
+    # )
+    return c
+
+
+config = fresh_config()
+
+
