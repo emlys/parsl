@@ -1,8 +1,6 @@
 import logging
 import os
-import pathlib
 import platform
-import subprocess
 import textwrap
 import time
 
@@ -149,6 +147,7 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
               SchedulerMissingArgs : If template is missing args
               ScriptPathError : Unable to write submit script out
         '''
+
         try:
             with open(script_filename, 'w') as f:
                 f.write(script_string)
@@ -190,13 +189,13 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         '''
         job_name = "{0}.{1}".format(job_name, time.time())
 
-        # if platform.system() == 'Windows':
-        #     script_path = "{0}/{1}.ps1".format(self.script_dir, job_name)
-        #     jobname_cmd = f'\n$env:JOBNAME = "{job_name}"\n'
-        # else:
-        script_path = "{0}/{1}.sh".format(self.script_dir, job_name)
-        jobname_cmd = f'\nexport JOBNAME={job_name}\n'
-        script_path = pathlib.Path(os.path.abspath(script_path)).as_posix()
+        if platform.system() == 'Windows':
+            script_path = "{0}/{1}.ps1".format(self.script_dir, job_name)
+            jobname_cmd = f'\n$env:JOBNAME = "{job_name}"\n'
+        else:
+            script_path = "{0}/{1}.sh".format(self.script_dir, job_name)
+            jobname_cmd = f'\nexport JOBNAME={job_name}\n'
+        script_path = os.path.abspath(script_path)
         wrap_command = (self.worker_init + jobname_cmd +
                         self.launcher(command, tasks_per_node, self.nodes_per_block, self.script_dir))
         self._write_submit_script(wrap_command, script_path)
@@ -219,13 +218,27 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
         # We need to do the >/dev/null 2>&1 so that bash closes stdout, otherwise
         # execute_wait hangs reading the process stdout until all the
         # background commands complete.
-
-        # to use this on Windows, a bash executable must be available
-        bash = os.environ.get('PARSL_WINDOWS_BASH_EXE', 'bash')
-
-        cmd = '{1} -c \'echo - >{0}.ec && {{ {{ {1} {0} 1>{0}.out 2>{0}.err ; ' \
-              'echo $? > {0}.ec ; }} >/dev/null 2>&1 & echo "PID:$!" ; }}\''.format(script_path, bash)
-        print(cmd)
+        if platform.system() == 'Windows':
+            cmd = (
+                f'powershell.exe -ExecutionPolicy Bypass -Command "'
+                f"Set-Content -Path '{script_path}.ec' -Value '-'; "
+                f"$p = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-ExecutionPolicy', 'Bypass', '-Command', "
+                f"'$proc = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList ''-ExecutionPolicy'', ''Bypass'', "
+                f"''-File'', ''{script_path}'' "
+                f"-RedirectStandardOutput ''{script_path}.out'' -RedirectStandardError ''{script_path}.err'' -PassThru -Wait; "
+                f"Set-Content -Path ''{script_path}.ec'' -Value $proc.ExitCode' -PassThru; "
+                f"Write-Host ('PID:' + $p.Id)"
+                f'"'
+            )
+        else:
+            cmd = textwrap.dedent(
+                f'''
+                /bin/bash -c 'echo - >{script_path}.ec &&
+                {{ {{
+                    bash {script_path} 1>{script_path}.out 2>{script_path}.err ;
+                    echo $? > {script_path}.ec ;
+                }} >/dev/null 2>&1 & echo "PID:$!" ; }}'
+                ''')
         retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
         if retcode != 0:
             raise SubmitException(job_name, "Launch command exited with code {0}".format(retcode),
@@ -237,40 +250,6 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
                 break
         if job_id is None:
             raise SubmitException(job_name, "Channel failed to start remote command/retrieve PID")
-
-        # cmd = f'{bash} {script_path}'
-        # print(cmd)
-
-        # try:
-        #     with open(f'{script_path}.ec', 'w') as ec_file:
-        #         ec_file.write('-')
-        #     logger.debug("Creating process with command '%s'", cmd)
-        #     if platform.system() == "Windows":
-        #         kwargs = dict(creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
-        #     else:
-        #         kwargs = dict(preexec_fn=os.setpgrp)
-        #     with open(f'{script_path}.out', 'w') as out, open(f'{script_path}.err', 'w') as err:
-        #         proc = subprocess.Popen(
-        #             cmd,
-        #             stdout=out,
-        #             stderr=err,
-        #             shell=True,
-        #             **kwargs
-        #         )
-        #     logger.debug("Created process with pid %s. Performing communicate", proc.pid)
-        #     (stdout, stderr) = proc.communicate(timeout=self.cmd_timeout)
-        #     logger.debug("Process %s returned %s", proc.pid, proc.returncode)
-        #     with open(f'{script_path}.ec', 'w') as ec_file:
-        #         ec_file.write(str(proc.returncode))
-
-        # except Exception:
-        #     pass
-
-        # else:
-        #     logger.debug("Execution of command in process %s completed normally", proc.pid)
-
-        # job_id = str(proc.pid)
-        # remote_pid = proc.pid
 
         self.resources[job_id] = {'job_id': job_id, 'status': JobStatus(JobState.RUNNING),
                                   'remote_pid': remote_pid, 'script_path': script_path}
@@ -291,12 +270,11 @@ class LocalProvider(ExecutionProvider, RepresentationMixin):
             job_dict = self.resources[job]
             job_dict['cancelled'] = True
             logger.debug("Terminating job/process ID: {0}".format(job))
-            psutil.Process(job_dict['remote_pid']).kill()
-            # cmd = "kill -- -$(ps -o pgid= {} | grep -o '[0-9]*')".format(job_dict['remote_pid'])
-            # retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
-            # if retcode != 0:
-            #     logger.warning("Failed to kill PID: {} and child processes on {}".format(job_dict['remote_pid'],
-            #                                                                              self.label))
+            cmd = "kill -- -$(ps -o pgid= {} | grep -o '[0-9]*')".format(job_dict['remote_pid'])
+            retcode, stdout, stderr = execute_wait(cmd, self.cmd_timeout)
+            if retcode != 0:
+                logger.warning("Failed to kill PID: {} and child processes on {}".format(job_dict['remote_pid'],
+                                                                                         self.label))
 
         rets = [True for i in job_ids]
         return rets
